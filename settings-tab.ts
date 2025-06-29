@@ -352,7 +352,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Add Creation Timestamp')
-			.setDesc('Add sane_creation_timestamp to note frontmatter')
+			.setDesc('Add created_at to note frontmatter')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.enableCreationTimestamp)
 				.onChange(async (value) => {
@@ -362,7 +362,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Add Modification Timestamp')
-			.setDesc('Add sane_modification_timestamp to note frontmatter')
+			.setDesc('Add modified_at to note frontmatter')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.enableModificationTimestamp)
 				.onChange(async (value) => {

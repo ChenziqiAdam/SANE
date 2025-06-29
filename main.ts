@@ -367,11 +367,11 @@ export default class SANEPlugin extends Plugin {
 		}
 		if (this.settings.enableCreationTimestamp) {
 			const creationDate = new Date(file.stat.ctime);
-			frontmatter.sane_created = creationDate.toISOString().toLocaleString();
+			frontmatter.created_at = creationDate.toISOString().toLocaleString();
 		}
 		if (this.settings.enableModificationTimestamp) {
 			const modificationDate = new Date(file.stat.mtime);
-			frontmatter.sane_modified = modificationDate.toISOString().toLocaleString();
+			frontmatter.modified_at = modificationDate.toISOString().toLocaleString();
 		}
 
 		// Add metadata
