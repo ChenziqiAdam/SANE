@@ -654,7 +654,7 @@ class SecurityWarningModal extends Modal {
 		const warning = contentEl.createDiv();
 		warning.innerHTML = `
 			<h3>⚠️ Important Security Information</h3>
-			<p><strong>Before using SANE, please:</strong></p>
+			<p><strong>Before using SANE (Beta), please:</strong></p>
 			<ul>
 				<li><strong>🔄 Backup your vault</strong> - SANE modifies your notes by adding YAML frontmatter</li>
 				<li><strong>🔐 API Keys</strong> - Your API keys are stored locally and never shared</li>

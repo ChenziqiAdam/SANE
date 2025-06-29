@@ -13,7 +13,7 @@ export class SANESettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 		
-		containerEl.createEl('h1', { text: 'SANE - Smart AI Note Evolution' });
+		containerEl.createEl('h1', { text: 'SANE - Smart AI Note Evolution (Beta)' });
 		containerEl.createEl('p', { 
 			text: 'SANE evolves your notes by finding the most relevant notes when you add/edit a note and enhancing them with AI-generated tags, keywords, links, and summaries.',
 			cls: 'setting-item-description'
