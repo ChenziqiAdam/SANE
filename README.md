@@ -21,9 +21,9 @@ SANE follows a simple but powerful approach:
 ## ✨ Features
 
 ### 🤖 **Multiple AI Providers**
-- **OpenAI** (GPT-4, GPT-3.5 Turbo)
-- **Google AI** (Gemini Pro)
-- **Grok** (X.AI)
+- **OpenAI** (gpt-4o-mini)
+- **Google AI** (gemini-2.0-flash)
+- **Grok** (grok-3-latest)
 - **Azure OpenAI**
 - **Local LLMs** (Ollama support)
 
@@ -81,8 +81,9 @@ sane_tags: ["machine-learning", "neural-networks", "ai"]
 sane_keywords: ["deep learning", "backpropagation", "training data"]
 sane_links: ["Introduction to AI", "Neural Network Basics"]
 sane_summary: "Comprehensive guide to understanding neural networks and their applications in modern AI systems."
-sane_updated: "2024-01-15T10:30:00Z"
 sane_version: "1.0"
+created_at: "2025/5/5 19:59:11"
+modified_at: "2025/6/29 12:15:12"
 ---
 
 # Your Original Content
@@ -163,10 +164,10 @@ For complete privacy and zero costs:
 ## 🆘 Support & Development
 
 ### ❤️ Love SANE?
-- ⭐ [Star us on GitHub](https://github.com/yourusername/sane-obsidian)
-- ☕ [Buy us a coffee](https://buymeacoffee.com/yourusername)  
-- 🐛 [Report bugs](https://github.com/yourusername/sane-obsidian/issues)
-- 💡 [Suggest features](https://github.com/yourusername/sane-obsidian/discussions)
+- ⭐ [Star us on GitHub](https://github.com/Ghost04718/SANE)
+- ☕ [Buy us a coffee](https://buymeacoffee.com/adamchen)  
+- 🐛 [Report bugs](https://github.com/Ghost04718/SANE/issues)
+- 💡 [Suggest features](https://github.com/Ghost04718/SANE/discussions)
 
 ### 🧪 Help Test & Develop
 - **Test Local LLMs**: Help us improve Ollama integration
