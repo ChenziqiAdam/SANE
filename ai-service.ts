@@ -37,7 +37,10 @@ export class UnifiedAIProvider implements AIProvider {
 		const prompt = `Analyze this note and generate enhancements based on the content and related notes.
 
 Note content:
-${content}${relatedContext}
+${content}
+
+Related notes:
+${relatedContext}
 
 Please provide ONLY a valid JSON response with this exact format (no markdown, no code blocks, no extra text):
 
@@ -51,7 +54,7 @@ Please provide ONLY a valid JSON response with this exact format (no markdown, n
 Requirements:
 - Generate 3-7 relevant tags (lowercase, no spaces, use hyphens)
 - Extract 3-8 important keywords or phrases
-- Suggest links only to notes mentioned in related context, and ONLY return the note titles
+- Suggest links only to notes mentioned in related context, and ONLY return the note titles. Return no titles if no related notes provided
 - Keep summary under 50 words
 - Return ONLY valid JSON, no markdown formatting`;
 

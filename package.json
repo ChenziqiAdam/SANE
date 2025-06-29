@@ -13,11 +13,10 @@
 		"plugin",
 		"ai",
 		"notes",
-		"evolution",
 		"sane",
 		"smart"
 	],
-	"author": "SANE Team",
+	"author": "Adam Chen",
 	"license": "MIT",
 	"devDependencies": {
 		"@types/node": "^16.11.6",

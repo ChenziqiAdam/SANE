@@ -15,7 +15,7 @@ export class SANESettingTab extends PluginSettingTab {
 		
 		containerEl.createEl('h1', { text: 'SANE - Smart AI Note Evolution' });
 		containerEl.createEl('p', { 
-			text: 'SANE evolves your notes by finding the 3 most relevant notes when you add/edit a note and enhancing them with AI-generated tags, keywords, links, and summaries.',
+			text: 'SANE evolves your notes by finding the most relevant notes when you add/edit a note and enhancing them with AI-generated tags, keywords, links, and summaries.',
 			cls: 'setting-item-description'
 		});
 
@@ -191,13 +191,13 @@ export class SANESettingTab extends PluginSettingTab {
 
 	private getDefaultLLMModel(provider: string): string {
 		const defaults = {
-			openai: 'gpt-4',
-			google: 'gemini-pro',
-			grok: 'grok-beta',
-			azure: 'gpt-4',
-			local: 'llama2'
+			openai: 'gpt-4o-mini',
+			google: 'gemini-2.0-flash',
+			grok: 'grok-3-latest',
+			azure: 'gpt-4o-mini',
+			local: 'llama3'
 		};
-		return defaults[provider] || 'gpt-4';
+		return defaults[provider] || 'gpt-4o-mini';
 	}
 
 	private getDefaultEmbeddingModel(provider: string): string {
@@ -210,7 +210,7 @@ export class SANESettingTab extends PluginSettingTab {
 	}
 
 	private createProcessingSettings(containerEl: HTMLElement): void {
-		containerEl.createEl('h2', { text: '⚙️ Processing Settings' });
+		containerEl.createEl('h2', { text: '⚙️ Processing Configurations' });
 
 		new Setting(containerEl)
 			.setName('Relevant Notes Count')
@@ -349,6 +349,26 @@ export class SANESettingTab extends PluginSettingTab {
 					this.plugin.settings.enableSummary = value;
 					await this.plugin.saveSettings();
 				}));
+
+		new Setting(containerEl)
+			.setName('Add Creation Timestamp')
+			.setDesc('Add sane_creation_timestamp to note frontmatter')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.enableCreationTimestamp)
+				.onChange(async (value) => {
+					this.plugin.settings.enableCreationTimestamp = value;
+					await this.plugin.saveSettings();
+				}));
+
+		new Setting(containerEl)
+			.setName('Add Modification Timestamp')
+			.setDesc('Add sane_modification_timestamp to note frontmatter')
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.enableModificationTimestamp)
+				.onChange(async (value) => {
+					this.plugin.settings.enableModificationTimestamp = value;
+					await this.plugin.saveSettings();
+				}));
 	}
 
 	private createCostSettings(containerEl: HTMLElement): void {
@@ -394,7 +414,7 @@ export class SANESettingTab extends PluginSettingTab {
 	}
 
 	private createAdvancedSettings(containerEl: HTMLElement): void {
-		containerEl.createEl('h2', { text: '🔧 Advanced Settings' });
+		containerEl.createEl('h2', { text: '🔧 Advanced Configurations' });
 
 		new Setting(containerEl)
 			.setName('Max Tokens')
@@ -470,10 +490,10 @@ export class SANESettingTab extends PluginSettingTab {
 		supportDiv.innerHTML = `
 			<p><strong>Love SANE? Here's how you can help:</strong></p>
 			<ul>
-				<li>⭐ <a href="https://github.com/yourusername/sane-obsidian">Star us on GitHub</a></li>
-				<li>☕ <a href="https://buymeacoffee.com/yourusername">Buy us a coffee</a></li>
-				<li>🐛 <a href="https://github.com/yourusername/sane-obsidian/issues">Report bugs</a></li>
-				<li>💡 <a href="https://github.com/yourusername/sane-obsidian/discussions">Suggest features</a></li>
+				<li>⭐ <a href="https://github.com/Ghost04718/SANE">Star us on GitHub</a></li>
+				<li>☕ <a href="https://buymeacoffee.com/adamchen">Buy us a coffee</a></li>
+				<li>🐛 <a href="https://github.com/Ghost04718/SANE/issues">Report bugs</a></li>
+				<li>💡 <a href="https://github.com/Ghost04718/SANE/discussions">Suggest features</a></li>
 				<li>🧪 Help test local LLM support</li>
 				<li>👨‍💻 Contribute to development</li>
 			</ul>

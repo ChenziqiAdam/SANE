@@ -365,6 +365,14 @@ export default class SANEPlugin extends Plugin {
 		if (this.settings.enableSummary && enhancement.summary) {
 			frontmatter.sane_summary = enhancement.summary;
 		}
+		if (this.settings.enableCreationTimestamp) {
+			const creationDate = new Date(file.stat.ctime);
+			frontmatter.sane_created = creationDate.toISOString().toLocaleString();
+		}
+		if (this.settings.enableModificationTimestamp) {
+			const modificationDate = new Date(file.stat.mtime);
+			frontmatter.sane_modified = modificationDate.toISOString().toLocaleString();
+		}
 
 		// Add metadata
 		frontmatter.sane_updated = new Date().toISOString();

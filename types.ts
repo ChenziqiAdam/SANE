@@ -34,6 +34,8 @@ export interface SANESettings {
 	enableKeywords: boolean;
 	enableLinks: boolean;
 	enableSummary: boolean;
+	enableCreationTimestamp: boolean;
+	enableModificationTimestamp: boolean;
 	
 	// Advanced
 	maxTokens: number;
@@ -69,6 +71,8 @@ export const DEFAULT_SETTINGS: SANESettings = {
 	enableKeywords: true,
 	enableLinks: true,
 	enableSummary: true,
+	enableCreationTimestamp: true,
+	enableModificationTimestamp: true,
 	
 	maxTokens: 2000,
 	temperature: 0.3,
