@@ -1,4 +1,4 @@
-# SANE - Smart AI Note Evolution
+# SANE - Smart AI Note Evolution (Beta)
 
 **Keep it Simple and Stupid** - An intelligent Obsidian plugin that evolves your notes automatically using AI. When you add or edit a note, SANE finds the 3 most relevant notes in your vault and enhances them with smart tags, keywords, links, and summaries.
 
