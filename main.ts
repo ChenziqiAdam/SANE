@@ -198,7 +198,7 @@ export default class SANEPlugin extends Plugin {
 				this.scheduleProcessing(); // Reschedule for next day
 			}, timeUntilScheduled);
 
-			console.log(`SANE: Next scheduled processing at ${scheduled.toLocaleString()}`);
+			// console.log(`SANE: Next scheduled processing at ${scheduled.toLocaleString()}`);
 		}
 	}
 
@@ -223,7 +223,7 @@ export default class SANEPlugin extends Plugin {
 		}
 
 		try {
-			console.log(`SANE: Processing note ${file.path}`);
+			// console.log(`SANE: Processing note ${file.path}`);
 
 			// Read note content
 			const content = await this.app.vault.read(file);
@@ -255,7 +255,7 @@ export default class SANEPlugin extends Plugin {
 			}
 
 		} catch (error) {
-			console.error(`SANE: Error processing note ${file.path}:`, error);
+			// console.error(`SANE: Error processing note ${file.path}:`, error);
 			
 			// Check if it's a budget error
 			if (error.message.includes('budget')) {
@@ -327,7 +327,7 @@ export default class SANEPlugin extends Plugin {
 			await this.applyEnhancement(file, content, enhancement);
 
 		} catch (error) {
-			console.error(`SANE: Error updating note ${file.path}:`, error);
+			// console.error(`SANE: Error updating note ${file.path}:`, error);
 			throw error;
 		}
 	}
@@ -548,7 +548,7 @@ export default class SANEPlugin extends Plugin {
 				await new Promise(resolve => setTimeout(resolve, 100));
 
 			} catch (error) {
-				console.error(`Error processing ${file.path}:`, error);
+				// console.error(`Error processing ${file.path}:`, error);
 				if (error.message.includes('budget')) {
 					new Notice('Daily budget reached. Initialization paused.');
 					break;
@@ -624,7 +624,7 @@ Summary: ${enhancement.summary}`;
 				this.noteEmbeddings = new Map(data);
 			}
 		} catch (error) {
-			console.error('Error loading embeddings:', error);
+			// console.error('Error loading embeddings:', error);
 		}
 	}
 
@@ -633,7 +633,7 @@ Summary: ${enhancement.summary}`;
 			const data = Array.from(this.noteEmbeddings.entries());
 			localStorage.setItem('sane-embeddings', JSON.stringify(data));
 		} catch (error) {
-			console.error('Error saving embeddings:', error);
+			// console.error('Error saving embeddings:', error);
 		}
 	}
 }
@@ -652,27 +652,42 @@ class SecurityWarningModal extends Modal {
 		contentEl.createEl('h2', { text: '🔒 SANE Security & Privacy Notice' });
 
 		const warning = contentEl.createDiv();
-		warning.innerHTML = `
-			<h3>⚠️ Important Security Information</h3>
-			<p><strong>Before using SANE (Beta), please:</strong></p>
-			<ul>
-				<li><strong>🔄 Backup your vault</strong> - SANE modifies your notes by adding YAML frontmatter</li>
-				<li><strong>🔐 API Keys</strong> - Your API keys are stored locally and never shared</li>
-				<li><strong>📤 Data Privacy</strong> - Your note content is sent to your chosen AI provider for processing</li>
-				<li><strong>💰 Costs</strong> - AI processing incurs costs based on your provider's pricing</li>
-				<li><strong>📁 Scope</strong> - Consider setting a target folder to limit which notes are processed</li>
-			</ul>
+		
+		const importantTitle = warning.createEl('h3', { text: '⚠️ Important Security Information' });
+		const beforeText = warning.createEl('p');
+		beforeText.createEl('strong', { text: 'Before using SANE, please:' });
+		
+		const beforeList = warning.createEl('ul');
+		
+		const backupLi = beforeList.createEl('li');
+		backupLi.createEl('strong', { text: '🔄 Backup your vault' });
+		backupLi.appendText(' - SANE modifies your notes by adding YAML frontmatter');
+		
+		const apiLi = beforeList.createEl('li');
+		apiLi.createEl('strong', { text: '🔐 API Keys' });
+		apiLi.appendText(' - Your API keys are stored locally and never shared');
+		
+		const privacyLi = beforeList.createEl('li');
+		privacyLi.createEl('strong', { text: '📤 Data Privacy' });
+		privacyLi.appendText(' - Your note content is sent to your chosen AI provider for processing');
+		
+		const costsLi = beforeList.createEl('li');
+		costsLi.createEl('strong', { text: '💰 Costs' });
+		costsLi.appendText(' - AI processing incurs costs based on your provider\'s pricing');
+		
+		const scopeLi = beforeList.createEl('li');
+		scopeLi.createEl('strong', { text: '📁 Scope' });
+		scopeLi.appendText(' - Consider setting a target folder to limit which notes are processed');
 
-			<h3>🛡️ Privacy Recommendations</h3>
-			<ul>
-				<li>Review your AI provider's data policies</li>
-				<li>Consider using local models for sensitive content</li>
-				<li>Set daily budget limits to control costs</li>
-				<li>Test with a few notes before processing your entire vault</li>
-			</ul>
+		const privacyTitle = warning.createEl('h3', { text: '🛡️ Privacy Recommendations' });
+		const privacyList = warning.createEl('ul');
+		privacyList.createEl('li', { text: 'Review your AI provider\'s data policies' });
+		privacyList.createEl('li', { text: 'Consider using local models for sensitive content' });
+		privacyList.createEl('li', { text: 'Set daily budget limits to control costs' });
+		privacyList.createEl('li', { text: 'Test with a few notes before processing your entire vault' });
 
-			<p><strong>By continuing, you acknowledge these risks and confirm you have backed up your vault.</strong></p>
-		`;
+		const acknowledgment = warning.createEl('p');
+		acknowledgment.createEl('strong', { text: 'By continuing, you acknowledge these risks and confirm you have backed up your vault.' });
 
 		const buttonContainer = contentEl.createDiv({ cls: 'modal-button-container' });
 		

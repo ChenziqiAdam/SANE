@@ -147,15 +147,26 @@ export class SANESettingTab extends PluginSettingTab {
 
 			// Add help text for local setup
 			const helpDiv = containerEl.createDiv({ cls: 'setting-item-description' });
-			helpDiv.innerHTML = `
-				<p><strong>Local LLM Setup:</strong></p>
-				<ol>
-					<li>Install <a href="https://ollama.ai">Ollama</a></li>
-					<li>Run: <code>ollama pull llama2</code> (or your preferred model)</li>
-					<li>Run: <code>ollama pull nomic-embed-text</code> (for embeddings)</li>
-					<li>Start Ollama service</li>
-				</ol>
-			`;
+			const title = helpDiv.createEl('p');
+			title.createEl('strong', { text: 'Local LLM Setup:' });
+			
+			const ol = helpDiv.createEl('ol');
+			
+			const li1 = ol.createEl('li');
+			li1.appendText('Install ');
+			li1.createEl('a', { href: 'https://ollama.ai', text: 'Ollama' });
+			
+			const li2 = ol.createEl('li');
+			li2.appendText('Run: ');
+			li2.createEl('code', { text: 'ollama pull llama2' });
+			li2.appendText(' (or your preferred model)');
+			
+			const li3 = ol.createEl('li');
+			li3.appendText('Run: ');
+			li3.createEl('code', { text: 'ollama pull nomic-embed-text' });
+			li3.appendText(' (for embeddings)');
+			
+			ol.createEl('li', { text: 'Start Ollama service' });
 		}
 	}
 
@@ -296,15 +307,14 @@ export class SANESettingTab extends PluginSettingTab {
 
 		// Security notice
 		const securityDiv = containerEl.createDiv({ cls: 'setting-item-description' });
-		securityDiv.innerHTML = `
-			<p><strong>🛡️ Security Reminders:</strong></p>
-			<ul>
-				<li>Your API keys are stored locally and never shared</li>
-				<li>Note content is sent to your chosen AI provider for processing</li>
-				<li>SANE adds YAML frontmatter to your notes - backup first!</li>
-				<li>Consider using a specific folder to limit scope</li>
-			</ul>
-		`;
+		const securityTitle = securityDiv.createEl('p');
+		securityTitle.createEl('strong', { text: '🛡️ Security Reminders:' });
+		
+		const securityList = securityDiv.createEl('ul');
+		securityList.createEl('li', { text: 'Your API keys are stored locally and never shared' });
+		securityList.createEl('li', { text: 'Note content is sent to your chosen AI provider for processing' });
+		securityList.createEl('li', { text: 'SANE adds YAML frontmatter to your notes - backup first!' });
+		securityList.createEl('li', { text: 'Consider using a specific folder to limit scope' });
 	}
 
 	private createFeatureSettings(containerEl: HTMLElement): void {
@@ -401,16 +411,29 @@ export class SANESettingTab extends PluginSettingTab {
 
 		// Cost estimation help
 		const costDiv = containerEl.createDiv({ cls: 'setting-item-description' });
-		costDiv.innerHTML = `
-			<p><strong>💡 Cost Estimates (per 1000 notes):</strong></p>
-			<ul>
-				<li><strong>OpenAI:</strong> ~$1.50 (GPT-4) or ~$0.30 (GPT-3.5)</li>
-				<li><strong>Google:</strong> ~$0.50 (Gemini Pro)</li>
-				<li><strong>Grok:</strong> ~$2.00 (estimated)</li>
-				<li><strong>Local:</strong> Free (but requires local setup)</li>
-			</ul>
-			<p><em>Actual costs depend on note length and enabled features.</em></p>
-		`;
+		const costTitle = costDiv.createEl('p');
+		costTitle.createEl('strong', { text: '💡 Cost Estimates (per 1000 notes):' });
+		
+		const costList = costDiv.createEl('ul');
+		
+		const openaiLi = costList.createEl('li');
+		openaiLi.createEl('strong', { text: 'OpenAI:' });
+		openaiLi.appendText(' ~$1.50 (GPT-4) or ~$0.30 (GPT-3.5)');
+		
+		const googleLi = costList.createEl('li');
+		googleLi.createEl('strong', { text: 'Google:' });
+		googleLi.appendText(' ~$0.50 (Gemini Pro)');
+		
+		const grokLi = costList.createEl('li');
+		grokLi.createEl('strong', { text: 'Grok:' });
+		grokLi.appendText(' ~$2.00 (estimated)');
+		
+		const localLi = costList.createEl('li');
+		localLi.createEl('strong', { text: 'Local:' });
+		localLi.appendText(' Free (but requires local setup)');
+		
+		const note = costDiv.createEl('p');
+		note.createEl('em', { text: 'Actual costs depend on note length and enabled features.' });
 	}
 
 	private createAdvancedSettings(containerEl: HTMLElement): void {
@@ -487,17 +510,29 @@ export class SANESettingTab extends PluginSettingTab {
 		containerEl.createEl('h2', { text: '❤️ Support SANE' });
 
 		const supportDiv = containerEl.createDiv({ cls: 'setting-item-description' });
-		supportDiv.innerHTML = `
-			<p><strong>Love SANE? Here's how you can help:</strong></p>
-			<ul>
-				<li>⭐ <a href="https://github.com/Ghost04718/SANE">Star us on GitHub</a></li>
-				<li>☕ <a href="https://buymeacoffee.com/adamchen">Buy us a coffee</a></li>
-				<li>🐛 <a href="https://github.com/Ghost04718/SANE/issues">Report bugs</a></li>
-				<li>💡 <a href="https://github.com/Ghost04718/SANE/discussions">Suggest features</a></li>
-				<li>🧪 Help test local LLM support</li>
-				<li>👨‍💻 Contribute to development</li>
-			</ul>
-		`;
+		const supportTitle = supportDiv.createEl('p');
+		supportTitle.createEl('strong', { text: 'Love SANE? Here\'s how you can help:' });
+		
+		const supportList = supportDiv.createEl('ul');
+		
+		const starLi = supportList.createEl('li');
+		starLi.appendText('⭐ ');
+		starLi.createEl('a', { href: 'https://github.com/Ghost04718/SANE', text: 'Star us on GitHub' });
+		
+		const coffeeLi = supportList.createEl('li');
+		coffeeLi.appendText('☕ ');
+		coffeeLi.createEl('a', { href: 'https://buymeacoffee.com/adamchen', text: 'Buy us a coffee' });
+		
+		const bugsLi = supportList.createEl('li');
+		bugsLi.appendText('🐛 ');
+		bugsLi.createEl('a', { href: 'https://github.com/Ghost04718/SANE/issues', text: 'Report bugs' });
+		
+		const featuresLi = supportList.createEl('li');
+		featuresLi.appendText('💡 ');
+		featuresLi.createEl('a', { href: 'https://github.com/Ghost04718/SANE/discussions', text: 'Suggest features' });
+		
+		supportList.createEl('li', { text: '🧪 Help test local LLM support' });
+		supportList.createEl('li', { text: '👨‍💻 Contribute to development' });
 
 		// Debug info
 		containerEl.createEl('h2', { text: '🔍 Debug Info' });
@@ -519,13 +554,19 @@ export class SANESettingTab extends PluginSettingTab {
 		const embeddingsCount = this.plugin['noteEmbeddings']?.size || 0;
 		const queueSize = this.plugin['processingQueue']?.size || 0;
 		
-		container.innerHTML = `
-			<p><strong>AI Provider:</strong> ${this.plugin.settings.aiProvider}</p>
-			<p><strong>AI Configured:</strong> ${aiConfigured ? 'Yes' : 'No'}</p>
-			<p><strong>Notes with Embeddings:</strong> ${embeddingsCount}</p>
-			<p><strong>Processing Queue:</strong> ${queueSize}</p>
-			<p><strong>Target Folder:</strong> ${this.plugin.settings.targetFolder || 'All folders'}</p>
-			<p><strong>Processing Trigger:</strong> ${this.plugin.settings.processingTrigger}</p>
-		`;
+		const infoItems = [
+			{ label: 'AI Provider:', value: this.plugin.settings.aiProvider },
+			{ label: 'AI Configured:', value: aiConfigured ? 'Yes' : 'No' },
+			{ label: 'Notes with Embeddings:', value: embeddingsCount.toString() },
+			{ label: 'Processing Queue:', value: queueSize.toString() },
+			{ label: 'Target Folder:', value: this.plugin.settings.targetFolder || 'All folders' },
+			{ label: 'Processing Trigger:', value: this.plugin.settings.processingTrigger }
+		];
+		
+		infoItems.forEach(item => {
+			const p = container.createEl('p');
+			p.createEl('strong', { text: item.label });
+			p.appendText(' ' + item.value);
+		});
 	}
 }

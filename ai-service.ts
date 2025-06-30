@@ -1,4 +1,4 @@
-import { Notice } from 'obsidian';
+import { Notice, requestUrl } from 'obsidian';
 import OpenAI from 'openai';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { AIProvider, Enhancement, SANESettings } from './types';
@@ -90,8 +90,8 @@ Requirements:
 			};
 
 		} catch (error) {
-			console.error('Error generating enhancement:', error);
-			console.log('Raw AI response:', response);
+			// console.error('Error generating enhancement:', error);
+			// console.log('Raw AI response:', response);
 			
 			// Provide more specific error messages
 			if (error.message.includes('JSON')) {
@@ -120,7 +120,7 @@ Requirements:
 					return this.generateSimpleEmbedding(content);
 			}
 		} catch (error) {
-			console.error('Error generating embedding:', error);
+			// console.error('Error generating embedding:', error);
 			new Notice(`Failed to generate embedding: ${error.message}`);
 			return [];
 		}
@@ -177,7 +177,8 @@ Requirements:
 
 	private async callGrok(prompt: string): Promise<string> {
 		// Grok API (X.AI) - using OpenAI-compatible interface
-		const response = await fetch('https://api.x.ai/v1/chat/completions', {
+		const response = await requestUrl({
+			url: 'https://api.x.ai/v1/chat/completions',
 			method: 'POST',
 			headers: {
 				'Authorization': `Bearer ${this.settings.grokApiKey}`,
@@ -191,17 +192,17 @@ Requirements:
 			})
 		});
 
-		if (!response.ok) {
-			throw new Error(`Grok API error: ${response.statusText}`);
+		if (response.status !== 200) {
+			throw new Error(`Grok API error: ${response.status}`);
 		}
 
-		const data = await response.json();
-		return data.choices[0]?.message?.content || '';
+		return response.json.choices[0]?.message?.content || '';
 	}
 
 	private async callAzure(prompt: string): Promise<string> {
 		// Azure OpenAI Service
-		const response = await fetch(`${this.settings.azureEndpoint}/openai/deployments/${this.settings.llmModel}/chat/completions?api-version=2024-02-15-preview`, {
+		const response = await requestUrl({
+			url: `${this.settings.azureEndpoint}/openai/deployments/${this.settings.llmModel}/chat/completions?api-version=2024-02-15-preview`,
 			method: 'POST',
 			headers: {
 				'api-key': this.settings.azureApiKey,
@@ -214,17 +215,17 @@ Requirements:
 			})
 		});
 
-		if (!response.ok) {
-			throw new Error(`Azure API error: ${response.statusText}`);
+		if (response.status !== 200) {
+			throw new Error(`Azure API error: ${response.status}`);
 		}
 
-		const data = await response.json();
-		return data.choices[0]?.message?.content || '';
+		return response.json.choices[0]?.message?.content || '';
 	}
 
 	private async callLocal(prompt: string): Promise<string> {
 		// Local LLM (Ollama format)
-		const response = await fetch(`${this.settings.localEndpoint}/api/generate`, {
+		const response = await requestUrl({
+			url: `${this.settings.localEndpoint}/api/generate`,
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
@@ -236,12 +237,11 @@ Requirements:
 			})
 		});
 
-		if (!response.ok) {
-			throw new Error(`Local LLM error: ${response.statusText}`);
+		if (response.status !== 200) {
+			throw new Error(`Local LLM error: ${response.status}`);
 		}
 
-		const data = await response.json();
-		return data.response || '';
+		return response.json.response || '';
 	}
 
 	private async generateOpenAIEmbedding(content: string): Promise<number[]> {
@@ -357,8 +357,8 @@ Requirements:
 			};
 			
 		} catch (error) {
-			console.error('Failed to parse AI response:', error);
-			console.log('Raw response:', response);
+			// console.error('Failed to parse AI response:', error);
+			// console.log('Raw response:', response);
 			
 			// Fallback: try to extract information using regex
 			return this.extractWithFallback(response);
@@ -366,7 +366,7 @@ Requirements:
 	}
 
 	private extractWithFallback(response: string): Enhancement {
-		console.log('Using fallback extraction for response:', response);
+		// console.log('Using fallback extraction for response:', response);
 		
 		const result: Enhancement = {
 			tags: [],
@@ -412,7 +412,7 @@ Requirements:
 			}
 			
 		} catch (error) {
-			console.error('Fallback extraction failed:', error);
+			// console.error('Fallback extraction failed:', error);
 		}
 		
 		return result;
