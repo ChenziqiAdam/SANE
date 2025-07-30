@@ -324,7 +324,7 @@ export default class SANEPlugin extends Plugin {
 			}
 
 			// Apply enhancement to note
-			await this.applyEnhancement(file, content, enhancement);
+			await this.applyEnhancement(file, enhancement);
 
 		} catch (error) {
 			// console.error(`SANE: Error updating note ${file.path}:`, error);
@@ -332,94 +332,35 @@ export default class SANEPlugin extends Plugin {
 		}
 	}
 
-	private async applyEnhancement(file: TFile, originalContent: string, enhancement: Enhancement): Promise<void> {
-		// Parse existing frontmatter or create new
-		let frontmatter: Record<string, any> = {};
-		let contentWithoutFrontmatter = originalContent;
-
-		const frontmatterMatch = originalContent.match(/^---\n([\s\S]*?)\n---\n?/);
-		if (frontmatterMatch) {
-			contentWithoutFrontmatter = originalContent.substring(frontmatterMatch[0].length);
-			// Simple YAML parsing
-			const lines = frontmatterMatch[1].split('\n');
-			for (const line of lines) {
-				const colonIndex = line.indexOf(':');
-				if (colonIndex > 0) {
-					const key = line.substring(0, colonIndex).trim();
-					const value = line.substring(colonIndex + 1).trim();
-					frontmatter[key] = this.parseYamlValue(value);
-				}
+	private async applyEnhancement(file: TFile, enhancement: Enhancement): Promise<void> {
+		// Use processFrontMatter to atomically update frontmatter
+		await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
+			// Add/update SANE enhancements
+			if (this.settings.enableTags && enhancement.tags.length > 0) {
+				frontmatter.sane_tags = enhancement.tags;
 			}
-		}
-
-		// Add/update SANE enhancements (ignore existing tags/links as per plan)
-		if (this.settings.enableTags && enhancement.tags.length > 0) {
-			frontmatter.sane_tags = enhancement.tags;
-		}
-		if (this.settings.enableKeywords && enhancement.keywords.length > 0) {
-			frontmatter.sane_keywords = enhancement.keywords;
-		}
-		if (this.settings.enableLinks && enhancement.links.length > 0) {
-			frontmatter.sane_links = enhancement.links;
-		}
-		if (this.settings.enableSummary && enhancement.summary) {
-			frontmatter.sane_summary = enhancement.summary;
-		}
-		if (this.settings.enableCreationTimestamp) {
-			const creationDate = new Date(file.stat.ctime);
-			frontmatter.created_at = creationDate.toISOString().toLocaleString();
-		}
-		if (this.settings.enableModificationTimestamp) {
-			const modificationDate = new Date(file.stat.mtime);
-			frontmatter.modified_at = modificationDate.toISOString().toLocaleString();
-		}
-
-		// Add metadata
-		frontmatter.sane_updated = new Date().toISOString();
-		frontmatter.sane_version = '1.0';
-
-		// Generate new frontmatter
-		const newFrontmatter = this.generateFrontmatter(frontmatter);
-
-		// Combine with content
-		const newContent = newFrontmatter + '\n\n' + contentWithoutFrontmatter;
-
-		// Write back to file
-		await this.app.vault.modify(file, newContent);
-	}
-
-	private parseYamlValue(value: string): any {
-		if (value.startsWith('[') && value.endsWith(']')) {
-			return value.slice(1, -1).split(',').map(item => item.trim().replace(/^["']|["']$/g, ''));
-		}
-		if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
-			return value.slice(1, -1);
-		}
-		if (value === 'true') return true;
-		if (value === 'false') return false;
-		if (!isNaN(Number(value))) return Number(value);
-		return value;
-	}
-
-	private generateFrontmatter(frontmatter: Record<string, any>): string {
-		const lines = ['---'];
-		
-		for (const [key, value] of Object.entries(frontmatter)) {
-			if (value === undefined || value === null) continue;
-			
-			if (Array.isArray(value)) {
-				if (value.length > 0) {
-					lines.push(`${key}: [${value.map(v => `"${v}"`).join(', ')}]`);
-				}
-			} else if (typeof value === 'string') {
-				lines.push(`${key}: "${value}"`);
-			} else {
-				lines.push(`${key}: ${value}`);
+			if (this.settings.enableKeywords && enhancement.keywords.length > 0) {
+				frontmatter.sane_keywords = enhancement.keywords;
 			}
-		}
-		
-		lines.push('---');
-		return lines.join('\n');
+			if (this.settings.enableLinks && enhancement.links.length > 0) {
+				frontmatter.sane_links = enhancement.links;
+			}
+			if (this.settings.enableSummary && enhancement.summary) {
+				frontmatter.sane_summary = enhancement.summary;
+			}
+			if (this.settings.enableCreationTimestamp) {
+				const creationDate = new Date(file.stat.ctime);
+				frontmatter.created_at = creationDate.toISOString();
+			}
+			if (this.settings.enableModificationTimestamp) {
+				const modificationDate = new Date(file.stat.mtime);
+				frontmatter.modified_at = modificationDate.toISOString();
+			}
+
+			// Add metadata
+			frontmatter.sane_updated = new Date().toISOString();
+			frontmatter.sane_version = '1.0';
+		});
 	}
 
 	private cleanContent(content: string): string {
@@ -618,7 +559,7 @@ Summary: ${enhancement.summary}`;
 	// Persistence
 	private async loadEmbeddings(): Promise<void> {
 		try {
-			const stored = localStorage.getItem('sane-embeddings');
+			const stored = await this.app.loadLocalStorage('sane-embeddings');
 			if (stored) {
 				const data = JSON.parse(stored);
 				this.noteEmbeddings = new Map(data);
@@ -631,7 +572,7 @@ Summary: ${enhancement.summary}`;
 	private async saveEmbeddings(): Promise<void> {
 		try {
 			const data = Array.from(this.noteEmbeddings.entries());
-			localStorage.setItem('sane-embeddings', JSON.stringify(data));
+			await this.app.saveLocalStorage('sane-embeddings', JSON.stringify(data));
 		} catch (error) {
 			// console.error('Error saving embeddings:', error);
 		}

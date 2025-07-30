@@ -13,7 +13,7 @@ export class SANESettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 		
-		containerEl.createEl('h1', { text: 'SANE - Smart AI Note Evolution (Beta)' });
+		// Remove top-level heading
 		containerEl.createEl('p', { 
 			text: 'SANE evolves your notes by finding the most relevant notes when you add/edit a note and enhancing them with AI-generated tags, keywords, links, and summaries.',
 			cls: 'setting-item-description'
@@ -42,10 +42,13 @@ export class SANESettingTab extends PluginSettingTab {
 	}
 
 	private createProviderSettings(containerEl: HTMLElement): void {
-		containerEl.createEl('h2', { text: '🤖 AI Provider' });
+		// Use setHeading instead of createEl('h2')
+		new Setting(containerEl)
+			.setName('AI provider')
+			.setHeading();
 
 		new Setting(containerEl)
-			.setName('AI Provider')
+			.setName('AI provider')
 			.setDesc('Choose your AI provider')
 			.addDropdown(dropdown => dropdown
 				.addOption('openai', 'OpenAI')
@@ -221,10 +224,13 @@ export class SANESettingTab extends PluginSettingTab {
 	}
 
 	private createProcessingSettings(containerEl: HTMLElement): void {
-		containerEl.createEl('h2', { text: '⚙️ Processing Configurations' });
+		// Use setHeading instead of createEl('h2'), and fix capitalization
+		new Setting(containerEl)
+			.setName('Processing Management')
+			.setHeading();
 
 		new Setting(containerEl)
-			.setName('Relevant Notes Count')
+			.setName('Relevant notes count')
 			.setDesc('Number of most relevant notes to update when a note changes (recommended: 3)')
 			.addSlider(slider => slider
 				.setLimits(1, 10, 1)
@@ -236,7 +242,7 @@ export class SANESettingTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
-			.setName('Processing Trigger')
+			.setName('Processing trigger')
 			.setDesc('When should SANE process notes?')
 			.addDropdown(dropdown => dropdown
 				.addOption('immediate', 'Immediate - Process right away')
@@ -253,7 +259,7 @@ export class SANESettingTab extends PluginSettingTab {
 		// Show additional settings based on trigger type
 		if (this.plugin.settings.processingTrigger === 'delayed') {
 			new Setting(containerEl)
-				.setName('Delay Minutes')
+				.setName('Delay minutes')
 				.setDesc('Minutes to wait after editing stops before processing')
 				.addSlider(slider => slider
 					.setLimits(1, 60, 1)
@@ -267,7 +273,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		if (this.plugin.settings.processingTrigger === 'scheduled') {
 			new Setting(containerEl)
-				.setName('Schedule Hour')
+				.setName('Schedule hour')
 				.setDesc('Hour of day to run processing (0-23, recommended: 2 for 2 AM)')
 				.addSlider(slider => slider
 					.setLimits(0, 23, 1)
@@ -281,10 +287,13 @@ export class SANESettingTab extends PluginSettingTab {
 	}
 
 	private createSecuritySettings(containerEl: HTMLElement): void {
-		containerEl.createEl('h2', { text: '🔒 Security & Scope' });
+		// Use setHeading instead of createEl('h2'), and fix capitalization
+		new Setting(containerEl)
+			.setName('Security & scope')
+			.setHeading();
 
 		new Setting(containerEl)
-			.setName('Target Folder')
+			.setName('Target folder')
 			.setDesc('Only process notes in this folder (leave empty for all folders)')
 			.addText(text => text
 				.setPlaceholder('e.g., "Notes" or "Knowledge Base"')
@@ -295,7 +304,7 @@ export class SANESettingTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
-			.setName('Show Privacy Warning')
+			.setName('Show privacy warning')
 			.setDesc('Show privacy and backup warning on next startup')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.requireBackupWarning)
@@ -318,10 +327,13 @@ export class SANESettingTab extends PluginSettingTab {
 	}
 
 	private createFeatureSettings(containerEl: HTMLElement): void {
-		containerEl.createEl('h2', { text: '✨ Enhancement Features' });
+		// Use setHeading instead of createEl('h2'), and fix capitalization
+		new Setting(containerEl)
+			.setName('Enhancement features')
+			.setHeading();
 
 		new Setting(containerEl)
-			.setName('Generate Tags')
+			.setName('Generate tags')
 			.setDesc('Add sane_tags to note frontmatter')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.enableTags)
@@ -331,7 +343,7 @@ export class SANESettingTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
-			.setName('Generate Keywords')
+			.setName('Generate keywords')
 			.setDesc('Add sane_keywords to note frontmatter')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.enableKeywords)
@@ -341,7 +353,7 @@ export class SANESettingTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
-			.setName('Generate Links')
+			.setName('Generate links')
 			.setDesc('Add sane_links to note frontmatter')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.enableLinks)
@@ -351,7 +363,7 @@ export class SANESettingTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
-			.setName('Generate Summary')
+			.setName('Generate summary')
 			.setDesc('Add sane_summary to note frontmatter')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.enableSummary)
@@ -361,7 +373,7 @@ export class SANESettingTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
-			.setName('Add Creation Timestamp')
+			.setName('Add creation timestamp')
 			.setDesc('Add created_at to note frontmatter')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.enableCreationTimestamp)
@@ -371,7 +383,7 @@ export class SANESettingTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
-			.setName('Add Modification Timestamp')
+			.setName('Add modification timestamp')
 			.setDesc('Add modified_at to note frontmatter')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.enableModificationTimestamp)
@@ -382,10 +394,13 @@ export class SANESettingTab extends PluginSettingTab {
 	}
 
 	private createCostSettings(containerEl: HTMLElement): void {
-		containerEl.createEl('h2', { text: '💰 Cost Management' });
+		// Use setHeading instead of createEl('h2'), and fix capitalization
+		new Setting(containerEl)
+			.setName('Cost management')
+			.setHeading();
 
 		new Setting(containerEl)
-			.setName('Enable Cost Tracking')
+			.setName('Enable cost tracking')
 			.setDesc('Track and limit daily spending')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.costTracking)
@@ -397,7 +412,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		if (this.plugin.settings.costTracking) {
 			new Setting(containerEl)
-				.setName('Daily Budget ($)')
+				.setName('Daily budget ($)')
 				.setDesc('Maximum amount to spend per day')
 				.addSlider(slider => slider
 					.setLimits(0.1, 10, 0.1)
@@ -437,10 +452,13 @@ export class SANESettingTab extends PluginSettingTab {
 	}
 
 	private createAdvancedSettings(containerEl: HTMLElement): void {
-		containerEl.createEl('h2', { text: '🔧 Advanced Configurations' });
+		// Use setHeading instead of createEl('h2'), and fix capitalization
+		new Setting(containerEl)
+			.setName('Advanced')
+			.setHeading();
 
 		new Setting(containerEl)
-			.setName('Max Tokens')
+			.setName('Max tokens')
 			.setDesc('Maximum tokens for AI responses')
 			.addSlider(slider => slider
 				.setLimits(500, 4000, 100)
@@ -464,7 +482,7 @@ export class SANESettingTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
-			.setName('Debug Mode')
+			.setName('Debug mode')
 			.setDesc('Enable debug features and verbose logging')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.debugMode)
@@ -475,10 +493,13 @@ export class SANESettingTab extends PluginSettingTab {
 	}
 
 	private createActionsSettings(containerEl: HTMLElement): void {
-		containerEl.createEl('h2', { text: '🚀 Actions' });
+		// Use setHeading instead of createEl('h2'), and fix capitalization
+		new Setting(containerEl)
+			.setName('Actions')
+			.setHeading();
 
 		new Setting(containerEl)
-			.setName('Process Current Note')
+			.setName('Process current note')
 			.setDesc('Process the currently active note')
 			.addButton(button => button
 				.setButtonText('Process Now')
@@ -488,7 +509,7 @@ export class SANESettingTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
-			.setName('Initialize All Notes')
+			.setName('Initialize all notes')
 			.setDesc('Process all notes in target folder (first-time setup)')
 			.addButton(button => button
 				.setButtonText('Initialize All')
@@ -498,7 +519,7 @@ export class SANESettingTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
-			.setName('Show Cost Summary')
+			.setName('Show cost summary')
 			.setDesc('View your usage and costs')
 			.addButton(button => button
 				.setButtonText('Show Costs')
@@ -507,7 +528,9 @@ export class SANESettingTab extends PluginSettingTab {
 				}));
 
 		// Support section
-		containerEl.createEl('h2', { text: '❤️ Support SANE' });
+		new Setting(containerEl)
+			.setName('Support SANE')
+			.setHeading();
 
 		const supportDiv = containerEl.createDiv({ cls: 'setting-item-description' });
 		const supportTitle = supportDiv.createEl('p');
@@ -535,13 +558,15 @@ export class SANESettingTab extends PluginSettingTab {
 		supportList.createEl('li', { text: '👨‍💻 Contribute to development' });
 
 		// Debug info
-		containerEl.createEl('h2', { text: '🔍 Debug Info' });
+		new Setting(containerEl)
+			.setName('Debug info')
+			.setHeading();
 		
 		const debugDiv = containerEl.createDiv();
 		this.updateDebugInfo(debugDiv);
 		
 		new Setting(containerEl)
-			.setName('Refresh Debug Info')
+			.setName('Refresh debug info')
 			.addButton(button => button
 				.setButtonText('Refresh')
 				.onClick(() => this.updateDebugInfo(debugDiv)));
