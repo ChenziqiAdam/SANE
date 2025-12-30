@@ -1,6 +1,6 @@
 {
 	"name": "sane-smart-ai-note-evolution",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "SANE - Smart AI Note Evolution: Evolve your notes intelligently with AI",
 	"main": "main.js",
 	"scripts": {

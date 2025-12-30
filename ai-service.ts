@@ -352,7 +352,7 @@ Requirements:
 			
 		} catch (error) {
 			 // Debug logging only in debug mode
-			if (this.settings && this.settings.debugMode) {
+			if (this.settings?.debugMode) {
 				console.error('Failed to parse AI response:', error);
 				console.debug('Raw response:', response);
 			}
@@ -364,7 +364,7 @@ Requirements:
 
 	private extractWithFallback(response: string): Enhancement {
 		// Debug logging only in debug mode
-		if (this.settings && this.settings.debugMode) {
+		if (this.settings?.debugMode) {
 			console.debug('Using fallback extraction for response:', response);
 		}
 		
@@ -413,7 +413,7 @@ Requirements:
 			
 		} catch (error) {
 			// Debug logging only in debug mode
-			if (this.settings && this.settings.debugMode) {
+			if (this.settings?.debugMode) {
 				console.error('Fallback extraction failed:', error);
 			}
 		}
