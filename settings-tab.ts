@@ -57,16 +57,13 @@ export class SANESettingTab extends PluginSettingTab {
 				.addOption('azure', 'Azure OpenAI')
 				.addOption('local', 'Local LLM (Ollama)')
 				.setValue(this.plugin.settings.aiProvider)
-				.onChange(async (value: any) => {
+				.onChange(async (value: 'openai' | 'google' | 'grok' | 'azure' | 'local') => {
 					this.plugin.settings.aiProvider = value;
 					await this.plugin.saveSettings();
 					this.display(); // Refresh to show relevant settings
 				}));
 
-		// Show relevant API key fields based on provider
 		this.createProviderSpecificSettings(containerEl);
-
-		// Model selection
 		this.createModelSettings(containerEl);
 	}
 
@@ -148,7 +145,6 @@ export class SANESettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					}));
 
-			// Add help text for local setup
 			const helpDiv = containerEl.createDiv({ cls: 'setting-item-description' });
 			const title = helpDiv.createEl('p');
 			title.createEl('strong', { text: 'Local LLM Setup:' });
@@ -176,7 +172,6 @@ export class SANESettingTab extends PluginSettingTab {
 	private createModelSettings(containerEl: HTMLElement): void {
 		const provider = this.plugin.settings.aiProvider;
 		
-		// LLM Model
 		new Setting(containerEl)
 			.setName('LLM Model')
 			.setDesc('Model used for text generation')
@@ -188,7 +183,6 @@ export class SANESettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 
-		// Embedding Model (if supported)
 		if (['openai', 'google', 'local'].includes(provider)) {
 			new Setting(containerEl)
 				.setName('Embedding Model')
@@ -224,9 +218,8 @@ export class SANESettingTab extends PluginSettingTab {
 	}
 
 	private createProcessingSettings(containerEl: HTMLElement): void {
-		// Use setHeading instead of createEl('h2'), and fix capitalization
 		new Setting(containerEl)
-			.setName('Processing Management')
+			.setName('Processing management')
 			.setHeading();
 
 		new Setting(containerEl)
@@ -250,13 +243,12 @@ export class SANESettingTab extends PluginSettingTab {
 				.addOption('scheduled', 'Scheduled - Process once daily at set time')
 				.addOption('manual', 'Manual - Only process when commanded')
 				.setValue(this.plugin.settings.processingTrigger)
-				.onChange(async (value: any) => {
+				.onChange(async (value: 'immediate' | 'delayed' | 'scheduled' | 'manual') => {
 					this.plugin.settings.processingTrigger = value;
 					await this.plugin.saveSettings();
 					this.display(); // Refresh to show relevant settings
 				}));
 
-		// Show additional settings based on trigger type
 		if (this.plugin.settings.processingTrigger === 'delayed') {
 			new Setting(containerEl)
 				.setName('Delay minutes')
@@ -287,7 +279,6 @@ export class SANESettingTab extends PluginSettingTab {
 	}
 
 	private createSecuritySettings(containerEl: HTMLElement): void {
-		// Use setHeading instead of createEl('h2'), and fix capitalization
 		new Setting(containerEl)
 			.setName('Security & scope')
 			.setHeading();
@@ -314,10 +305,8 @@ export class SANESettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}));
 
-		// Security notice
 		const securityDiv = containerEl.createDiv({ cls: 'setting-item-description' });
-		const securityTitle = securityDiv.createEl('p');
-		securityTitle.createEl('strong', { text: '🛡️ Security Reminders:' });
+		securityDiv.createEl('p').createEl('strong', { text: '🛡️ Security reminders:' });
 		
 		const securityList = securityDiv.createEl('ul');
 		securityList.createEl('li', { text: 'Your API keys are stored locally and never shared' });
@@ -327,7 +316,6 @@ export class SANESettingTab extends PluginSettingTab {
 	}
 
 	private createFeatureSettings(containerEl: HTMLElement): void {
-		// Use setHeading instead of createEl('h2'), and fix capitalization
 		new Setting(containerEl)
 			.setName('Enhancement features')
 			.setHeading();
@@ -394,7 +382,6 @@ export class SANESettingTab extends PluginSettingTab {
 	}
 
 	private createCostSettings(containerEl: HTMLElement): void {
-		// Use setHeading instead of createEl('h2'), and fix capitalization
 		new Setting(containerEl)
 			.setName('Cost management')
 			.setHeading();
@@ -424,10 +411,8 @@ export class SANESettingTab extends PluginSettingTab {
 					}));
 		}
 
-		// Cost estimation help
 		const costDiv = containerEl.createDiv({ cls: 'setting-item-description' });
-		const costTitle = costDiv.createEl('p');
-		costTitle.createEl('strong', { text: '💡 Cost Estimates (per 1000 notes):' });
+		costDiv.createEl('p').createEl('strong', { text: '💡 Cost estimates (per 1000 notes):' });
 		
 		const costList = costDiv.createEl('ul');
 		
@@ -452,7 +437,6 @@ export class SANESettingTab extends PluginSettingTab {
 	}
 
 	private createAdvancedSettings(containerEl: HTMLElement): void {
-		// Use setHeading instead of createEl('h2'), and fix capitalization
 		new Setting(containerEl)
 			.setName('Advanced')
 			.setHeading();
@@ -493,7 +477,6 @@ export class SANESettingTab extends PluginSettingTab {
 	}
 
 	private createActionsSettings(containerEl: HTMLElement): void {
-		// Use setHeading instead of createEl('h2'), and fix capitalization
 		new Setting(containerEl)
 			.setName('Actions')
 			.setHeading();
@@ -502,7 +485,7 @@ export class SANESettingTab extends PluginSettingTab {
 			.setName('Process current note')
 			.setDesc('Process the currently active note')
 			.addButton(button => button
-				.setButtonText('Process Now')
+				.setButtonText('Process now')
 				.setClass('mod-cta')
 				.onClick(async () => {
 					await this.plugin.processCurrentNote();
@@ -512,7 +495,7 @@ export class SANESettingTab extends PluginSettingTab {
 			.setName('Initialize all notes')
 			.setDesc('Process all notes in target folder (first-time setup)')
 			.addButton(button => button
-				.setButtonText('Initialize All')
+				.setButtonText('Initialize all')
 				.setClass('mod-warning')
 				.onClick(async () => {
 					await this.plugin.initializeAllNotes();
@@ -522,19 +505,17 @@ export class SANESettingTab extends PluginSettingTab {
 			.setName('Show cost summary')
 			.setDesc('View your usage and costs')
 			.addButton(button => button
-				.setButtonText('Show Costs')
+				.setButtonText('Show costs')
 				.onClick(() => {
 					this.plugin.showCostSummary();
 				}));
 
-		// Support section
 		new Setting(containerEl)
 			.setName('Support SANE')
 			.setHeading();
 
 		const supportDiv = containerEl.createDiv({ cls: 'setting-item-description' });
-		const supportTitle = supportDiv.createEl('p');
-		supportTitle.createEl('strong', { text: 'Love SANE? Here\'s how you can help:' });
+		supportDiv.createEl('p').createEl('strong', { text: 'Love SANE? Here\'s how you can help:' });
 		
 		const supportList = supportDiv.createEl('ul');
 		
@@ -557,7 +538,6 @@ export class SANESettingTab extends PluginSettingTab {
 		supportList.createEl('li', { text: '🧪 Help test local LLM support' });
 		supportList.createEl('li', { text: '👨‍💻 Contribute to development' });
 
-		// Debug info
 		new Setting(containerEl)
 			.setName('Debug info')
 			.setHeading();

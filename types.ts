@@ -52,7 +52,7 @@ export const DEFAULT_SETTINGS: SANESettings = {
 	azureEndpoint: '',
 	localEndpoint: 'http://localhost:11434',
 	
-	llmModel: 'gpt-4',
+	llmModel: 'gpt-4o-mini',
 	embeddingModel: 'text-embedding-3-small',
 	
 	relevantNotesCount: 3,

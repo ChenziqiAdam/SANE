@@ -19,8 +19,10 @@ export default class SANEPlugin extends Plugin {
 	private scheduledProcessingTimer?: NodeJS.Timeout;
 	private costEntries: CostEntry[] = [];
 
-	async onload() {
-		console.log('Loading SANE - Smart AI Note Evolution');
+	async onload(): Promise<void> {
+		if (this.settings.debugMode) {
+			console.debug('Loading SANE - Smart AI Note Evolution');
+		}
 
 		// Add custom icon
 		addIcon('sane-brain', BRAIN_ICON);
@@ -49,8 +51,8 @@ export default class SANEPlugin extends Plugin {
 		this.addSettingTab(new SANESettingTab(this.app, this));
 
 		// Add ribbon icon
-		this.addRibbonIcon('sane-brain', 'SANE: Process current note', async () => {
-			await this.processCurrentNote();
+		this.addRibbonIcon('sane-brain', 'SANE: Process current note', () => {
+			void this.processCurrentNote();
 		});
 
 		// Schedule processing if enabled
@@ -59,8 +61,10 @@ export default class SANEPlugin extends Plugin {
 		new Notice('SANE - Smart AI Note Evolution loaded!');
 	}
 
-	async onunload() {
-		console.log('Unloading SANE');
+	async onunload(): Promise<void> {
+		if (this.settings.debugMode) {
+			console.debug('Unloading SANE');
+		}
 		
 		// Clear timers
 		if (this.delayedProcessingTimer) {
@@ -94,7 +98,7 @@ export default class SANEPlugin extends Plugin {
 		const modal = new SecurityWarningModal(this.app, () => {
 			this.settings.privacyWarningShown = true;
 			this.settings.requireBackupWarning = false;
-			this.saveSettings();
+			void this.saveSettings();
 		});
 		modal.open();
 	}
@@ -102,25 +106,25 @@ export default class SANEPlugin extends Plugin {
 	private registerEventHandlers(): void {
 		// Note creation handler
 		this.registerEvent(
-			this.app.vault.on('create', async (file) => {
+			this.app.vault.on('create', (file) => {
 				if (file instanceof TFile && this.shouldProcessFile(file)) {
-					await this.handleNoteChange(file);
+					void this.handleNoteChange(file);
 				}
 			})
 		);
 
 		// Note modification handler
 		this.registerEvent(
-			this.app.vault.on('modify', async (file) => {
+			this.app.vault.on('modify', (file) => {
 				if (file instanceof TFile && this.shouldProcessFile(file)) {
-					await this.handleNoteChange(file);
+					void this.handleNoteChange(file);
 				}
 			})
 		);
 
 		// Note deletion handler
 		this.registerEvent(
-			this.app.vault.on('delete', async (file) => {
+			this.app.vault.on('delete', (file) => {
 				if (file instanceof TFile && file.extension === 'md') {
 					this.noteEmbeddings.delete(file.path);
 				}
@@ -193,12 +197,15 @@ export default class SANEPlugin extends Plugin {
 
 			const timeUntilScheduled = scheduled.getTime() - now.getTime();
 			
-			this.scheduledProcessingTimer = setTimeout(async () => {
-				await this.processQueuedNotes();
+			this.scheduledProcessingTimer = setTimeout(() => {
+				void this.processQueuedNotes();
 				this.scheduleProcessing(); // Reschedule for next day
 			}, timeUntilScheduled);
 
-			// console.log(`SANE: Next scheduled processing at ${scheduled.toLocaleString()}`);
+			// Debug logging only in debug mode
+			if (this.settings.debugMode) {
+				console.debug(`SANE: Next scheduled processing at ${scheduled.toLocaleString()}`);
+			}
 		}
 	}
 
@@ -222,9 +229,12 @@ export default class SANEPlugin extends Plugin {
 			return;
 		}
 
-		try {
-			// console.log(`SANE: Processing note ${file.path}`);
+		// Debug logging only in debug mode
+		if (this.settings.debugMode) {
+			console.debug(`SANE: Processing note ${file.path}`);
+		}
 
+		try {
 			// Read note content
 			const content = await this.app.vault.read(file);
 			const cleanContent = this.cleanContent(content);
@@ -255,13 +265,11 @@ export default class SANEPlugin extends Plugin {
 			}
 
 		} catch (error) {
-			// console.error(`SANE: Error processing note ${file.path}:`, error);
-			
 			// Check if it's a budget error
-			if (error.message.includes('budget')) {
+			if (error instanceof Error && error.message.includes('budget')) {
 				new Notice('Daily budget reached. Processing paused until tomorrow.');
 			} else {
-				new Notice(`Error processing note: ${error.message}`);
+				new Notice(`Error processing note: ${error instanceof Error ? error.message : 'Unknown error'}`);
 			}
 		}
 	}
@@ -306,30 +314,24 @@ export default class SANEPlugin extends Plugin {
 	}
 
 	private async updateNoteWithAI(file: TFile, relatedContent: string[]): Promise<void> {
-		try {
-			const content = await this.app.vault.read(file);
-			const cleanContent = this.cleanContent(content);
+		const content = await this.app.vault.read(file);
+		const cleanContent = this.cleanContent(content);
 
-			// Check daily budget
-			if (this.settings.costTracking && !this.canAffordProcessing()) {
-				throw new Error('Would exceed daily budget');
-			}
-
-			// Generate enhancement
-			const enhancement = await this.aiProvider.generateEnhancement(cleanContent, relatedContent);
-
-			// Record cost
-			if (this.settings.costTracking) {
-				this.recordCost('enhancement', this.estimateTokens(cleanContent));
-			}
-
-			// Apply enhancement to note
-			await this.applyEnhancement(file, enhancement);
-
-		} catch (error) {
-			// console.error(`SANE: Error updating note ${file.path}:`, error);
-			throw error;
+		// Check daily budget
+		if (this.settings.costTracking && !this.canAffordProcessing()) {
+			throw new Error('Would exceed daily budget');
 		}
+
+		// Generate enhancement
+		const enhancement = await this.aiProvider.generateEnhancement(cleanContent, relatedContent);
+
+		// Record cost
+		if (this.settings.costTracking) {
+			this.recordCost('enhancement', this.estimateTokens(cleanContent));
+		}
+
+		// Apply enhancement to note
+		await this.applyEnhancement(file, enhancement);
 	}
 
 	private async applyEnhancement(file: TFile, enhancement: Enhancement): Promise<void> {
@@ -414,16 +416,16 @@ export default class SANEPlugin extends Plugin {
 		this.addCommand({
 			id: 'process-current-note',
 			name: 'Process current note',
-			callback: async () => {
-				await this.processCurrentNote();
+			callback: () => {
+				void this.processCurrentNote();
 			}
 		});
 
 		this.addCommand({
 			id: 'process-all-notes',
 			name: 'Initialize: Process all notes in target folder',
-			callback: async () => {
-				await this.initializeAllNotes();
+			callback: () => {
+				void this.initializeAllNotes();
 			}
 		});
 
@@ -440,8 +442,8 @@ export default class SANEPlugin extends Plugin {
 			this.addCommand({
 				id: 'test-ai-response',
 				name: 'Test AI response (debug)',
-				callback: async () => {
-					await this.testAIResponse();
+				callback: () => {
+					void this.testAIResponse();
 				}
 			});
 		}
@@ -464,40 +466,44 @@ export default class SANEPlugin extends Plugin {
 	}
 
 	public async initializeAllNotes(): Promise<void> {
-		const confirmed = confirm(
-			'This will process all notes in the target folder. This may take time and use API credits. Continue?'
-		);
+		const modal = new ConfirmModal(
+			this.app, 
+			'Initialize All Notes',
+			'This will process all notes in the target folder. This may take time and use API credits. Continue?',
+			async () => {
+				const allFiles = this.app.vault.getMarkdownFiles();
+				const targetFiles = allFiles.filter(file => this.shouldProcessFile(file));
 
-		if (!confirmed) return;
+				new Notice(`Initializing ${targetFiles.length} notes...`);
 
-		const allFiles = this.app.vault.getMarkdownFiles();
-		const targetFiles = allFiles.filter(file => this.shouldProcessFile(file));
+				for (let i = 0; i < targetFiles.length; i++) {
+					const file = targetFiles[i];
+					
+					try {
+						await this.processNote(file);
+						
+						if (i % 10 === 0) {
+							new Notice(`Processed ${i + 1}/${targetFiles.length} notes`, 2000);
+						}
 
-		new Notice(`Initializing ${targetFiles.length} notes...`);
+						// Small delay to avoid overwhelming the API
+						await new Promise(resolve => setTimeout(resolve, 100));
 
-		for (let i = 0; i < targetFiles.length; i++) {
-			const file = targetFiles[i];
-			
-			try {
-				await this.processNote(file);
-				
-				if (i % 10 === 0) {
-					new Notice(`Processed ${i + 1}/${targetFiles.length} notes`, 2000);
+					} catch (error) {
+						if (this.settings.debugMode) {
+							console.error(`Error processing ${file.path}:`, error);
+						}
+						if (error instanceof Error && error.message.includes('budget')) {
+							new Notice('Daily budget reached. Initialization paused.');
+							break;
+						}
+					}
 				}
 
-				// Small delay to avoid overwhelming the API
-				await new Promise(resolve => setTimeout(resolve, 100));
-
-			} catch (error) {
-				// console.error(`Error processing ${file.path}:`, error);
-				if (error.message.includes('budget')) {
-					new Notice('Daily budget reached. Initialization paused.');
-					break;
-				}
+				new Notice('Initialization complete!');
 			}
-		}
-
-		new Notice('Initialization complete!');
+		);
+		modal.open();
 	}
 
 	public showCostSummary(): void {
@@ -536,11 +542,15 @@ Provider: ${this.settings.aiProvider}`;
 			const testContent = "This is a test note about machine learning and artificial intelligence. It discusses neural networks and their applications in modern AI systems.";
 			const testRelated = ["Introduction to AI: Basic concepts", "Neural Networks: Deep dive"];
 			
-			console.log('Testing AI response with:', { testContent, testRelated });
+			if (this.settings.debugMode) {
+				console.debug('Testing AI response with:', { testContent, testRelated });
+			}
 			
 			const enhancement = await this.aiProvider.generateEnhancement(testContent, testRelated);
 			
-			console.log('AI enhancement result:', enhancement);
+			if (this.settings.debugMode) {
+				console.debug('AI enhancement result:', enhancement);
+			}
 			
 			const message = `🧪 AI Test Results:
 Tags: ${enhancement.tags.join(', ')}
@@ -551,8 +561,10 @@ Summary: ${enhancement.summary}`;
 			new Notice(message, 15000);
 			
 		} catch (error) {
-			console.error('AI test failed:', error);
-			new Notice(`AI test failed: ${error.message}`);
+			if (this.settings.debugMode) {
+				console.error('AI test failed:', error);
+			}
+			new Notice(`AI test failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
 		}
 	}
 
@@ -565,7 +577,9 @@ Summary: ${enhancement.summary}`;
 				this.noteEmbeddings = new Map(data);
 			}
 		} catch (error) {
-			// console.error('Error loading embeddings:', error);
+			if (this.settings.debugMode) {
+				console.error('Error loading embeddings:', error);
+			}
 		}
 	}
 
@@ -574,8 +588,49 @@ Summary: ${enhancement.summary}`;
 			const data = Array.from(this.noteEmbeddings.entries());
 			await this.app.saveLocalStorage('sane-embeddings', JSON.stringify(data));
 		} catch (error) {
-			// console.error('Error saving embeddings:', error);
+			if (this.settings.debugMode) {
+				console.error('Error saving embeddings:', error);
+			}
 		}
+	}
+}
+
+// Confirmation Modal to replace confirm()
+class ConfirmModal extends Modal {
+	private title: string;
+	private message: string;
+	private onConfirm: () => void;
+
+	constructor(app: App, title: string, message: string, onConfirm: () => void) {
+		super(app);
+		this.title = title;
+		this.message = message;
+		this.onConfirm = onConfirm;
+	}
+
+	onOpen() {
+		const { contentEl } = this;
+		contentEl.createEl('h2', { text: this.title });
+		contentEl.createEl('p', { text: this.message });
+
+		const buttonContainer = contentEl.createDiv({ cls: 'modal-button-container' });
+		
+		const cancelButton = buttonContainer.createEl('button', { text: 'Cancel' });
+		cancelButton.onclick = () => this.close();
+
+		const confirmButton = buttonContainer.createEl('button', { 
+			text: 'Continue',
+			cls: 'mod-cta'
+		});
+		confirmButton.onclick = () => {
+			this.onConfirm();
+			this.close();
+		};
+	}
+
+	onClose() {
+		const { contentEl } = this;
+		contentEl.empty();
 	}
 }
 
@@ -594,7 +649,7 @@ class SecurityWarningModal extends Modal {
 
 		const warning = contentEl.createDiv();
 		
-		const importantTitle = warning.createEl('h3', { text: '⚠️ Important Security Information' });
+		warning.createEl('h3', { text: '⚠️ Important Security Information' });
 		const beforeText = warning.createEl('p');
 		beforeText.createEl('strong', { text: 'Before using SANE, please:' });
 		
@@ -620,7 +675,7 @@ class SecurityWarningModal extends Modal {
 		scopeLi.createEl('strong', { text: '📁 Scope' });
 		scopeLi.appendText(' - Consider setting a target folder to limit which notes are processed');
 
-		const privacyTitle = warning.createEl('h3', { text: '🛡️ Privacy Recommendations' });
+		warning.createEl('h3', { text: '🛡️ Privacy Recommendations' });
 		const privacyList = warning.createEl('ul');
 		privacyList.createEl('li', { text: 'Review your AI provider\'s data policies' });
 		privacyList.createEl('li', { text: 'Consider using local models for sensitive content' });

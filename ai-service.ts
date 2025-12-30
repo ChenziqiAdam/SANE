@@ -90,16 +90,10 @@ Requirements:
 			};
 
 		} catch (error) {
-			// console.error('Error generating enhancement:', error);
-			// console.log('Raw AI response:', response);
-			
-			// Provide more specific error messages
-			if (error.message.includes('JSON')) {
-				new Notice(`AI returned invalid JSON format. Please try again.`);
-			} else if (error.message.includes('budget') || error.message.includes('quota')) {
-				new Notice(`API limit reached: ${error.message}`);
+			if (error instanceof Error && error.message.includes('budget')) {
+				new Notice('Daily budget reached. Processing paused until tomorrow.');
 			} else {
-				new Notice(`Failed to generate enhancement: ${error.message}`);
+				new Notice(`Error processing note: ${error instanceof Error ? error.message : 'Unknown error'}`);
 			}
 			
 			return { tags: [], keywords: [], links: [], summary: '' };
@@ -266,7 +260,8 @@ Requirements:
 
 	private async generateLocalEmbedding(content: string): Promise<number[]> {
 		// Local embedding using Ollama
-		const response = await fetch(`${this.settings.localEndpoint}/api/embeddings`, {
+		const response = await requestUrl({
+			url: `${this.settings.localEndpoint}/api/embeddings`,
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
@@ -277,12 +272,11 @@ Requirements:
 			})
 		});
 
-		if (!response.ok) {
-			throw new Error(`Local embedding error: ${response.statusText}`);
+		if (response.status !== 200) {
+			throw new Error(`Local embedding error: ${response.status}`);
 		}
 
-		const data = await response.json();
-		return data.embedding || [];
+		return response.json.embedding || [];
 	}
 
 	private generateSimpleEmbedding(content: string): number[] {
@@ -357,8 +351,11 @@ Requirements:
 			};
 			
 		} catch (error) {
-			// console.error('Failed to parse AI response:', error);
-			// console.log('Raw response:', response);
+			 // Debug logging only in debug mode
+			if (this.settings && this.settings.debugMode) {
+				console.error('Failed to parse AI response:', error);
+				console.debug('Raw response:', response);
+			}
 			
 			// Fallback: try to extract information using regex
 			return this.extractWithFallback(response);
@@ -366,7 +363,10 @@ Requirements:
 	}
 
 	private extractWithFallback(response: string): Enhancement {
-		// console.log('Using fallback extraction for response:', response);
+		// Debug logging only in debug mode
+		if (this.settings && this.settings.debugMode) {
+			console.debug('Using fallback extraction for response:', response);
+		}
 		
 		const result: Enhancement = {
 			tags: [],
@@ -412,7 +412,10 @@ Requirements:
 			}
 			
 		} catch (error) {
-			// console.error('Fallback extraction failed:', error);
+			// Debug logging only in debug mode
+			if (this.settings && this.settings.debugMode) {
+				console.error('Fallback extraction failed:', error);
+			}
 		}
 		
 		return result;
