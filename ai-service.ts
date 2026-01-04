@@ -130,7 +130,7 @@ Requirements:
 		};
 
 		const provider = this.settings.aiProvider;
-		const providerPricing = pricing[provider as keyof typeof pricing];
+		const providerPricing = pricing[provider];
 		let basePrice = 0.01; // default fallback
 		
 		if (providerPricing) {

@@ -19,46 +19,46 @@ export default class SANEPlugin extends Plugin {
 	private scheduledProcessingTimer?: NodeJS.Timeout;
 	private costEntries: CostEntry[] = [];
 
-	async onload(): Promise<void> {
+	onload(): void {
 		// Load settings FIRST before any other operations
-		await this.loadSettings();
+		this.loadSettings().then(() => {
+			if (this.settings?.debugMode) {
+				console.debug('Loading SANE - Smart AI Note Evolution');
+			}
 
-		if (this.settings?.debugMode) {
-			console.debug('Loading SANE - Smart AI Note Evolution');
-		}
+			// Add custom icon
+			addIcon('sane-brain', BRAIN_ICON);
 
-		// Add custom icon
-		addIcon('sane-brain', BRAIN_ICON);
+			// Show security warnings for first-time users
+			if (!this.settings.privacyWarningShown || this.settings.requireBackupWarning) {
+				this.showSecurityWarnings();
+			}
 
-		// Show security warnings for first-time users
-		if (!this.settings.privacyWarningShown || this.settings.requireBackupWarning) {
-			this.showSecurityWarnings();
-		}
+			// Initialize AI provider
+			this.aiProvider = new UnifiedAIProvider(this.settings);
 
-		// Initialize AI provider
-		this.aiProvider = new UnifiedAIProvider(this.settings);
+			// Load existing embeddings
+			this.loadEmbeddings();
 
-		// Load existing embeddings
-		await this.loadEmbeddings();
+			// Register event handlers
+			this.registerEventHandlers();
 
-		// Register event handlers
-		this.registerEventHandlers();
+			// Add commands
+			this.addCommands();
 
-		// Add commands
-		this.addCommands();
+			// Add settings tab
+			this.addSettingTab(new SANESettingTab(this.app, this));
 
-		// Add settings tab
-		this.addSettingTab(new SANESettingTab(this.app, this));
+			// Add ribbon icon
+			this.addRibbonIcon('sane-brain', 'SANE: Process current note', () => {
+				void this.processCurrentNote();
+			});
 
-		// Add ribbon icon
-		this.addRibbonIcon('sane-brain', 'SANE: Process current note', () => {
-			this.processCurrentNote();
+			// Schedule processing if enabled
+			this.scheduleProcessing();
+
+			new Notice('SANE - Smart AI Note Evolution loaded!');
 		});
-
-		// Schedule processing if enabled
-		this.scheduleProcessing();
-
-		new Notice('SANE - Smart AI Note Evolution loaded!');
 	}
 
 	async onunload(): Promise<void> {
@@ -153,7 +153,7 @@ export default class SANEPlugin extends Plugin {
 		// Handle based on processing trigger
 		switch (this.settings.processingTrigger) {
 			case 'immediate':
-				this.processNote(file);
+				await this.processNote(file);
 				break;
 			case 'delayed':
 				this.scheduleDelayedProcessing();
@@ -175,7 +175,7 @@ export default class SANEPlugin extends Plugin {
 
 		// Set new timer
 		this.delayedProcessingTimer = setTimeout(() => {
-			this.processQueuedNotes();
+			void this.processQueuedNotes();
 		}, this.settings.delayMinutes * 60 * 1000);
 	}
 
@@ -198,7 +198,7 @@ export default class SANEPlugin extends Plugin {
 			const timeUntilScheduled = scheduled.getTime() - now.getTime();
 			
 			this.scheduledProcessingTimer = setTimeout(() => {
-				this.processQueuedNotes();
+				void this.processQueuedNotes();
 				this.scheduleProcessing(); // Reschedule for next day
 			}, timeUntilScheduled);
 
@@ -417,13 +417,13 @@ export default class SANEPlugin extends Plugin {
 			id: 'process-current-note',
 			name: 'Process current note',
 			callback: () => {
-				this.processCurrentNote();
+				void this.processCurrentNote();
 			}
 		});
 
 		this.addCommand({
 			id: 'process-all-notes',
-			name: 'Initialize: Process all notes in target folder',
+			name: 'Initialize: process all notes in target folder',
 			callback: () => {
 				this.initializeAllNotes();
 			}
@@ -443,7 +443,7 @@ export default class SANEPlugin extends Plugin {
 				id: 'test-ai-response',
 				name: 'Test AI response (debug)',
 				callback: () => {
-					this.testAIResponse();
+					void this.testAIResponse();
 				}
 			});
 		}
@@ -470,40 +470,44 @@ export default class SANEPlugin extends Plugin {
 			this.app, 
 			'Initialize all notes',
 			'This will process all notes in the target folder. This may take time and use API credits. Continue?',
-			async () => {
-				const allFiles = this.app.vault.getMarkdownFiles();
-				const targetFiles = allFiles.filter(file => this.shouldProcessFile(file));
-
-				new Notice(`Initializing ${targetFiles.length} notes...`);
-
-				for (let i = 0; i < targetFiles.length; i++) {
-					const file = targetFiles[i];
-					
-					try {
-						await this.processNote(file);
-						
-						if (i % 10 === 0) {
-							new Notice(`Processed ${i + 1}/${targetFiles.length} notes`, 2000);
-						}
-
-						// Small delay to avoid overwhelming the API
-						await new Promise(resolve => setTimeout(resolve, 100));
-
-					} catch (error) {
-						if (this.settings?.debugMode) {
-							console.error(`Error processing ${file.path}:`, error);
-						}
-						if (error instanceof Error && error.message.includes('budget')) {
-							new Notice('Daily budget reached. Initialization paused.');
-							break;
-						}
-					}
-				}
-
-				new Notice('Initialization complete!');
+			() => {
+				this.performInitializeAllNotes();
 			}
 		);
 		modal.open();
+	}
+
+	private async performInitializeAllNotes(): Promise<void> {
+		const allFiles = this.app.vault.getMarkdownFiles();
+		const targetFiles = allFiles.filter(file => this.shouldProcessFile(file));
+
+		new Notice(`Initializing ${targetFiles.length} notes...`);
+
+		for (let i = 0; i < targetFiles.length; i++) {
+			const file = targetFiles[i];
+			
+			try {
+				await this.processNote(file);
+				
+				if (i % 10 === 0) {
+					new Notice(`Processed ${i + 1}/${targetFiles.length} notes`, 2000);
+				}
+
+				// Small delay to avoid overwhelming the API
+				await new Promise(resolve => setTimeout(resolve, 100));
+
+			} catch (error) {
+				if (this.settings?.debugMode) {
+					console.error(`Error processing ${file.path}:`, error);
+				}
+				if (error instanceof Error && error.message.includes('budget')) {
+					new Notice('Daily budget reached. Initialization paused.');
+					break;
+				}
+			}
+		}
+
+		new Notice('Initialization complete!');
 	}
 
 	public showCostSummary(): void {

@@ -19,25 +19,25 @@ export class SANESettingTab extends PluginSettingTab {
 			cls: 'setting-item-description'
 		});
 
-		// AI Provider Configuration
+		// AI provider configuration
 		this.createProviderSettings(containerEl);
 		
-		// Processing Settings
+		// Processing settings
 		this.createProcessingSettings(containerEl);
 		
-		// Security & Scope Settings
+		// Security & scope settings
 		this.createSecuritySettings(containerEl);
 		
-		// Feature Toggles
+		// Feature toggles
 		this.createFeatureSettings(containerEl);
 		
-		// Cost Management
+		// Cost management
 		this.createCostSettings(containerEl);
 		
-		// Advanced Settings
+		// Advanced settings
 		this.createAdvancedSettings(containerEl);
 		
-		// Actions & Support
+		// Actions & support
 		this.createActionsSettings(containerEl);
 	}
 
