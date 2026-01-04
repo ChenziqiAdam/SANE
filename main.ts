@@ -30,7 +30,7 @@ export default class SANEPlugin extends Plugin {
 		// Add custom icon
 		addIcon('sane-brain', BRAIN_ICON);
 
-			// Show security warnings for first-time users
+		// Show security warnings for first-time users
 		if (!this.settings.privacyWarningShown || this.settings.requireBackupWarning) {
 			this.showSecurityWarnings();
 		}
@@ -52,7 +52,7 @@ export default class SANEPlugin extends Plugin {
 
 		// Add ribbon icon
 		this.addRibbonIcon('sane-brain', 'SANE: Process current note', () => {
-			void this.processCurrentNote();
+			this.processCurrentNote();
 		});
 
 		// Schedule processing if enabled
@@ -132,8 +132,8 @@ export default class SANEPlugin extends Plugin {
 		);
 	}
 
-	private shouldProcessFile(file: any): boolean {
-		if (!(file instanceof TFile) || file.extension !== 'md') {
+	private shouldProcessFile(file: TFile): boolean {
+		if (!file || file.extension !== 'md') {
 			return false;
 		}
 
@@ -153,7 +153,7 @@ export default class SANEPlugin extends Plugin {
 		// Handle based on processing trigger
 		switch (this.settings.processingTrigger) {
 			case 'immediate':
-				await this.processNote(file);
+				this.processNote(file);
 				break;
 			case 'delayed':
 				this.scheduleDelayedProcessing();
@@ -174,8 +174,8 @@ export default class SANEPlugin extends Plugin {
 		}
 
 		// Set new timer
-		this.delayedProcessingTimer = setTimeout(async () => {
-			await this.processQueuedNotes();
+		this.delayedProcessingTimer = setTimeout(() => {
+			this.processQueuedNotes();
 		}, this.settings.delayMinutes * 60 * 1000);
 	}
 
@@ -198,7 +198,7 @@ export default class SANEPlugin extends Plugin {
 			const timeUntilScheduled = scheduled.getTime() - now.getTime();
 			
 			this.scheduledProcessingTimer = setTimeout(() => {
-				void this.processQueuedNotes();
+				this.processQueuedNotes();
 				this.scheduleProcessing(); // Reschedule for next day
 			}, timeUntilScheduled);
 
@@ -417,7 +417,7 @@ export default class SANEPlugin extends Plugin {
 			id: 'process-current-note',
 			name: 'Process current note',
 			callback: () => {
-				void this.processCurrentNote();
+				this.processCurrentNote();
 			}
 		});
 
@@ -425,7 +425,7 @@ export default class SANEPlugin extends Plugin {
 			id: 'process-all-notes',
 			name: 'Initialize: Process all notes in target folder',
 			callback: () => {
-				void this.initializeAllNotes();
+				this.initializeAllNotes();
 			}
 		});
 
@@ -443,7 +443,7 @@ export default class SANEPlugin extends Plugin {
 				id: 'test-ai-response',
 				name: 'Test AI response (debug)',
 				callback: () => {
-					void this.testAIResponse();
+					this.testAIResponse();
 				}
 			});
 		}
@@ -465,10 +465,10 @@ export default class SANEPlugin extends Plugin {
 		new Notice('Current note processed!');
 	}
 
-	public async initializeAllNotes(): Promise<void> {
+	public initializeAllNotes(): void {
 		const modal = new ConfirmModal(
 			this.app, 
-			'Initialize All Notes',
+			'Initialize all notes',
 			'This will process all notes in the target folder. This may take time and use API credits. Continue?',
 			async () => {
 				const allFiles = this.app.vault.getMarkdownFiles();
@@ -552,7 +552,7 @@ Provider: ${this.settings.aiProvider}`;
 				console.debug('AI enhancement result:', enhancement);
 			}
 			
-			const message = `🧪 AI Test Results:
+			const message = `🧪 AI test results:
 Tags: ${enhancement.tags.join(', ')}
 Keywords: ${enhancement.keywords.join(', ')}
 Links: ${enhancement.links.join(', ')}

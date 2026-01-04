@@ -114,8 +114,8 @@ Requirements:
 					return this.generateSimpleEmbedding(content);
 			}
 		} catch (error) {
-			// console.error('Error generating embedding:', error);
-			new Notice(`Failed to generate embedding: ${error.message}`);
+			const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+			new Notice(`Failed to generate embedding: ${errorMessage}`);
 			return [];
 		}
 	}
@@ -400,7 +400,17 @@ Requirements:
 				const linksStr = linksMatch[1];
 				result.links = linksStr.split(',')
 					.map(l => l.trim().replace(/['"]/g, ''))
-					.filter(l => l.length > 0);
+					.filter(l => l.length > 0)
+					.map(link => {
+						// If the link is already in [[note]] format, keep it
+						if (link.startsWith('[[') && link.endsWith(']]')) {
+							return link;
+						}
+						// If it's a plain string like "note title", convert to [[note title]]
+						// Remove any quotes that might be in the string
+						const cleanLink = link.replace(/['"]/g, '').trim();
+						return `[[${cleanLink}]]`;
+					});
 			}
 			
 			// Try to extract summary

@@ -49,7 +49,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('AI provider')
-			.setDesc('Choose your AI provider')
+			.setDesc('Choose your AI provider.')
 			.addDropdown(dropdown => dropdown
 				.addOption('openai', 'OpenAI')
 				.addOption('google', 'Google AI')
@@ -72,8 +72,8 @@ export class SANESettingTab extends PluginSettingTab {
 
 		if (provider === 'openai') {
 			new Setting(containerEl)
-				.setName('OpenAI API Key')
-				.setDesc('Your OpenAI API key (starts with sk-)')
+				.setName('OpenAI API key')
+				.setDesc('Your OpenAI API key (starts with sk-).')
 				.addText(text => text
 					.setPlaceholder('sk-...')
 					.setValue(this.plugin.settings.openaiApiKey)
@@ -85,8 +85,8 @@ export class SANESettingTab extends PluginSettingTab {
 
 		if (provider === 'google') {
 			new Setting(containerEl)
-				.setName('Google AI API Key')
-				.setDesc('Your Google AI Studio API key')
+				.setName('Google AI API key')
+				.setDesc('Your Google AI Studio API key.')
 				.addText(text => text
 					.setPlaceholder('AIza...')
 					.setValue(this.plugin.settings.googleApiKey)
@@ -98,8 +98,8 @@ export class SANESettingTab extends PluginSettingTab {
 
 		if (provider === 'grok') {
 			new Setting(containerEl)
-				.setName('Grok API Key')
-				.setDesc('Your X.AI Grok API key')
+				.setName('Grok API key')
+				.setDesc('Your X.AI Grok API key.')
 				.addText(text => text
 					.setPlaceholder('xai-...')
 					.setValue(this.plugin.settings.grokApiKey)
@@ -111,8 +111,8 @@ export class SANESettingTab extends PluginSettingTab {
 
 		if (provider === 'azure') {
 			new Setting(containerEl)
-				.setName('Azure API Key')
-				.setDesc('Your Azure OpenAI API key')
+				.setName('Azure API key')
+				.setDesc('Your Azure OpenAI API key.')
 				.addText(text => text
 					.setPlaceholder('Azure API key')
 					.setValue(this.plugin.settings.azureApiKey)
@@ -122,8 +122,8 @@ export class SANESettingTab extends PluginSettingTab {
 					}));
 
 			new Setting(containerEl)
-				.setName('Azure Endpoint')
-				.setDesc('Your Azure OpenAI endpoint URL')
+				.setName('Azure endpoint')
+				.setDesc('Your Azure OpenAI endpoint URL.')
 				.addText(text => text
 					.setPlaceholder('https://your-resource.openai.azure.com')
 					.setValue(this.plugin.settings.azureEndpoint)
@@ -135,8 +135,8 @@ export class SANESettingTab extends PluginSettingTab {
 
 		if (provider === 'local') {
 			new Setting(containerEl)
-				.setName('Local Endpoint')
-				.setDesc('Your local LLM endpoint (Ollama default: http://localhost:11434)')
+				.setName('Local endpoint')
+				.setDesc('Your local LLM endpoint (Ollama default: http://localhost:11434).')
 				.addText(text => text
 					.setPlaceholder('http://localhost:11434')
 					.setValue(this.plugin.settings.localEndpoint)
@@ -147,7 +147,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 			const helpDiv = containerEl.createDiv({ cls: 'setting-item-description' });
 			const title = helpDiv.createEl('p');
-			title.createEl('strong', { text: 'Local LLM Setup:' });
+			title.createEl('strong', { text: 'Local LLM setup:' });
 			
 			const ol = helpDiv.createEl('ol');
 			
@@ -165,7 +165,7 @@ export class SANESettingTab extends PluginSettingTab {
 			li3.createEl('code', { text: 'ollama pull nomic-embed-text' });
 			li3.appendText(' (for embeddings)');
 			
-			ol.createEl('li', { text: 'Start Ollama service' });
+			ol.createEl('li', { text: 'Start Ollama service.' });
 		}
 	}
 
@@ -173,8 +173,8 @@ export class SANESettingTab extends PluginSettingTab {
 		const provider = this.plugin.settings.aiProvider;
 		
 		new Setting(containerEl)
-			.setName('LLM Model')
-			.setDesc('Model used for text generation')
+			.setName('LLM model')
+			.setDesc('Model used for text generation.')
 			.addText(text => text
 				.setPlaceholder(this.getDefaultLLMModel(provider))
 				.setValue(this.plugin.settings.llmModel)
@@ -185,8 +185,8 @@ export class SANESettingTab extends PluginSettingTab {
 
 		if (['openai', 'google', 'local'].includes(provider)) {
 			new Setting(containerEl)
-				.setName('Embedding Model')
-				.setDesc('Model used for generating embeddings')
+				.setName('Embedding model')
+				.setDesc('Model used for generating embeddings.')
 				.addText(text => text
 					.setPlaceholder(this.getDefaultEmbeddingModel(provider))
 					.setValue(this.plugin.settings.embeddingModel)
@@ -224,7 +224,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Relevant notes count')
-			.setDesc('Number of most relevant notes to update when a note changes (recommended: 3)')
+			.setDesc('Number of most relevant notes to update when a note changes (recommended: 3).')
 			.addSlider(slider => slider
 				.setLimits(1, 10, 1)
 				.setValue(this.plugin.settings.relevantNotesCount)
@@ -238,10 +238,10 @@ export class SANESettingTab extends PluginSettingTab {
 			.setName('Processing trigger')
 			.setDesc('When should SANE process notes?')
 			.addDropdown(dropdown => dropdown
-				.addOption('immediate', 'Immediate - Process right away')
-				.addOption('delayed', 'Delayed - Wait X minutes after editing stops')
-				.addOption('scheduled', 'Scheduled - Process once daily at set time')
-				.addOption('manual', 'Manual - Only process when commanded')
+				.addOption('immediate', 'Immediate - process right away')
+				.addOption('delayed', 'Delayed - wait X minutes after editing stops')
+				.addOption('scheduled', 'Scheduled - process once daily at set time')
+				.addOption('manual', 'Manual - only process when commanded')
 				.setValue(this.plugin.settings.processingTrigger)
 				.onChange(async (value: 'immediate' | 'delayed' | 'scheduled' | 'manual') => {
 					this.plugin.settings.processingTrigger = value;
@@ -252,7 +252,7 @@ export class SANESettingTab extends PluginSettingTab {
 		if (this.plugin.settings.processingTrigger === 'delayed') {
 			new Setting(containerEl)
 				.setName('Delay minutes')
-				.setDesc('Minutes to wait after editing stops before processing')
+				.setDesc('Minutes to wait after editing stops before processing.')
 				.addSlider(slider => slider
 					.setLimits(1, 60, 1)
 					.setValue(this.plugin.settings.delayMinutes)
@@ -266,7 +266,7 @@ export class SANESettingTab extends PluginSettingTab {
 		if (this.plugin.settings.processingTrigger === 'scheduled') {
 			new Setting(containerEl)
 				.setName('Schedule hour')
-				.setDesc('Hour of day to run processing (0-23, recommended: 2 for 2 AM)')
+				.setDesc('Hour of day to run processing (0-23, recommended: 2 for 2 AM).')
 				.addSlider(slider => slider
 					.setLimits(0, 23, 1)
 					.setValue(this.plugin.settings.scheduleHour)
@@ -285,7 +285,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Target folder')
-			.setDesc('Only process notes in this folder (leave empty for all folders)')
+			.setDesc('Only process notes in this folder (leave empty for all folders).')
 			.addText(text => text
 				.setPlaceholder('e.g., "Notes" or "Knowledge Base"')
 				.setValue(this.plugin.settings.targetFolder)
@@ -296,7 +296,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Show privacy warning')
-			.setDesc('Show privacy and backup warning on next startup')
+			.setDesc('Show privacy and backup warning on next startup.')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.requireBackupWarning)
 				.onChange(async (value) => {
@@ -309,10 +309,10 @@ export class SANESettingTab extends PluginSettingTab {
 		securityDiv.createEl('p').createEl('strong', { text: '🛡️ Security reminders:' });
 		
 		const securityList = securityDiv.createEl('ul');
-		securityList.createEl('li', { text: 'Your API keys are stored locally and never shared' });
-		securityList.createEl('li', { text: 'Note content is sent to your chosen AI provider for processing' });
+		securityList.createEl('li', { text: 'Your API keys are stored locally and never shared.' });
+		securityList.createEl('li', { text: 'Note content is sent to your chosen AI provider for processing.' });
 		securityList.createEl('li', { text: 'SANE adds YAML frontmatter to your notes - backup first!' });
-		securityList.createEl('li', { text: 'Consider using a specific folder to limit scope' });
+		securityList.createEl('li', { text: 'Consider using a specific folder to limit scope.' });
 	}
 
 	private createFeatureSettings(containerEl: HTMLElement): void {
@@ -322,7 +322,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Generate tags')
-			.setDesc('Add sane_tags to note frontmatter')
+			.setDesc('Add sane_tags to note frontmatter.')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.enableTags)
 				.onChange(async (value) => {
@@ -332,7 +332,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Generate keywords')
-			.setDesc('Add sane_keywords to note frontmatter')
+			.setDesc('Add sane_keywords to note frontmatter.')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.enableKeywords)
 				.onChange(async (value) => {
@@ -342,7 +342,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Generate links')
-			.setDesc('Add sane_links to note frontmatter')
+			.setDesc('Add sane_links to note frontmatter.')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.enableLinks)
 				.onChange(async (value) => {
@@ -352,7 +352,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Generate summary')
-			.setDesc('Add sane_summary to note frontmatter')
+			.setDesc('Add sane_summary to note frontmatter.')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.enableSummary)
 				.onChange(async (value) => {
@@ -362,7 +362,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Add creation timestamp')
-			.setDesc('Add created_at to note frontmatter')
+			.setDesc('Add created_at to note frontmatter.')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.enableCreationTimestamp)
 				.onChange(async (value) => {
@@ -372,7 +372,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Add modification timestamp')
-			.setDesc('Add modified_at to note frontmatter')
+			.setDesc('Add modified_at to note frontmatter.')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.enableModificationTimestamp)
 				.onChange(async (value) => {
@@ -388,7 +388,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Enable cost tracking')
-			.setDesc('Track and limit daily spending')
+			.setDesc('Track and limit daily spending.')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.costTracking)
 				.onChange(async (value) => {
@@ -400,7 +400,7 @@ export class SANESettingTab extends PluginSettingTab {
 		if (this.plugin.settings.costTracking) {
 			new Setting(containerEl)
 				.setName('Daily budget ($)')
-				.setDesc('Maximum amount to spend per day')
+				.setDesc('Maximum amount to spend per day.')
 				.addSlider(slider => slider
 					.setLimits(0.1, 10, 0.1)
 					.setValue(this.plugin.settings.dailyBudget)
@@ -418,19 +418,19 @@ export class SANESettingTab extends PluginSettingTab {
 		
 		const openaiLi = costList.createEl('li');
 		openaiLi.createEl('strong', { text: 'OpenAI:' });
-		openaiLi.appendText(' ~$1.50 (GPT-4) or ~$0.30 (GPT-3.5)');
+		openaiLi.appendText(' ~$1.50 (GPT-4) or ~$0.30 (GPT-3.5).');
 		
 		const googleLi = costList.createEl('li');
 		googleLi.createEl('strong', { text: 'Google:' });
-		googleLi.appendText(' ~$0.50 (Gemini Pro)');
+		googleLi.appendText(' ~$0.50 (Gemini Pro).');
 		
 		const grokLi = costList.createEl('li');
 		grokLi.createEl('strong', { text: 'Grok:' });
-		grokLi.appendText(' ~$2.00 (estimated)');
+		grokLi.appendText(' ~$2.00 (estimated).');
 		
 		const localLi = costList.createEl('li');
 		localLi.createEl('strong', { text: 'Local:' });
-		localLi.appendText(' Free (but requires local setup)');
+		localLi.appendText(' Free (but requires local setup).');
 		
 		const note = costDiv.createEl('p');
 		note.createEl('em', { text: 'Actual costs depend on note length and enabled features.' });
@@ -443,7 +443,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Max tokens')
-			.setDesc('Maximum tokens for AI responses')
+			.setDesc('Maximum tokens for AI responses.')
 			.addSlider(slider => slider
 				.setLimits(500, 4000, 100)
 				.setValue(this.plugin.settings.maxTokens)
@@ -455,7 +455,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Temperature')
-			.setDesc('Creativity level (0 = deterministic, 1 = creative)')
+			.setDesc('Creativity level (0 = deterministic, 1 = creative).')
 			.addSlider(slider => slider
 				.setLimits(0, 1, 0.1)
 				.setValue(this.plugin.settings.temperature)
@@ -467,7 +467,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Debug mode')
-			.setDesc('Enable debug features and verbose logging')
+			.setDesc('Enable debug features and verbose logging.')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.debugMode)
 				.onChange(async (value) => {
@@ -483,7 +483,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Process current note')
-			.setDesc('Process the currently active note')
+			.setDesc('Process the currently active note.')
 			.addButton(button => button
 				.setButtonText('Process now')
 				.setClass('mod-cta')
@@ -493,7 +493,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Initialize all notes')
-			.setDesc('Process all notes in target folder (first-time setup)')
+			.setDesc('Process all notes in target folder (first-time setup).')
 			.addButton(button => button
 				.setButtonText('Initialize all')
 				.setClass('mod-warning')
@@ -503,7 +503,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Show cost summary')
-			.setDesc('View your usage and costs')
+			.setDesc('View your usage and costs.')
 			.addButton(button => button
 				.setButtonText('Show costs')
 				.onClick(() => {
@@ -535,8 +535,8 @@ export class SANESettingTab extends PluginSettingTab {
 		featuresLi.appendText('💡 ');
 		featuresLi.createEl('a', { href: 'https://github.com/Ghost04718/SANE/discussions', text: 'Suggest features' });
 		
-		supportList.createEl('li', { text: '🧪 Help test local LLM support' });
-		supportList.createEl('li', { text: '👨‍💻 Contribute to development' });
+		supportList.createEl('li', { text: '🧪 Help test local LLM support.' });
+		supportList.createEl('li', { text: '👨‍💻 Contribute to development.' });
 
 		new Setting(containerEl)
 			.setName('Debug info')
@@ -560,12 +560,12 @@ export class SANESettingTab extends PluginSettingTab {
 		const queueSize = this.plugin['processingQueue']?.size || 0;
 		
 		const infoItems = [
-			{ label: 'AI Provider:', value: this.plugin.settings.aiProvider },
-			{ label: 'AI Configured:', value: aiConfigured ? 'Yes' : 'No' },
-			{ label: 'Notes with Embeddings:', value: embeddingsCount.toString() },
-			{ label: 'Processing Queue:', value: queueSize.toString() },
-			{ label: 'Target Folder:', value: this.plugin.settings.targetFolder || 'All folders' },
-			{ label: 'Processing Trigger:', value: this.plugin.settings.processingTrigger }
+			{ label: 'AI provider:', value: this.plugin.settings.aiProvider },
+			{ label: 'AI configured:', value: aiConfigured ? 'Yes' : 'No' },
+			{ label: 'Notes with embeddings:', value: embeddingsCount.toString() },
+			{ label: 'Processing queue:', value: queueSize.toString() },
+			{ label: 'Target folder:', value: this.plugin.settings.targetFolder || 'All folders' },
+			{ label: 'Processing trigger:', value: this.plugin.settings.processingTrigger }
 		];
 		
 		infoItems.forEach(item => {
