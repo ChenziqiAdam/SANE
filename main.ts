@@ -19,46 +19,48 @@ export default class SANEPlugin extends Plugin {
 	private scheduledProcessingTimer?: NodeJS.Timeout;
 	private costEntries: CostEntry[] = [];
 
-	async onload(): Promise<void> {
-		// Load settings FIRST before any other operations
-		await this.loadSettings();
+	onload(): void {
+		this.loadSettings().then(() => {
+			if (this.settings?.debugMode) {
+				console.debug('Loading SANE - Smart AI Note Evolution');
+			}
 
-		if (this.settings?.debugMode) {
-			console.debug('Loading SANE - Smart AI Note Evolution');
-		}
+			// Add custom icon
+			addIcon('sane-brain', BRAIN_ICON);
 
-		// Add custom icon
-		addIcon('sane-brain', BRAIN_ICON);
+			// Show security warnings for first-time users
+			if (!this.settings.privacyWarningShown || this.settings.requireBackupWarning) {
+				this.showSecurityWarnings();
+			}
 
-		// Show security warnings for first-time users
-		if (!this.settings.privacyWarningShown || this.settings.requireBackupWarning) {
-			this.showSecurityWarnings();
-		}
+			// Initialize AI provider
+			this.aiProvider = new UnifiedAIProvider(this.settings);
 
-		// Initialize AI provider
-		this.aiProvider = new UnifiedAIProvider(this.settings);
+			// Load existing embeddings
+			void this.loadEmbeddings();
 
-		// Load existing embeddings
-		void this.loadEmbeddings();
+			// Register event handlers
+			this.registerEventHandlers();
 
-		// Register event handlers
-		this.registerEventHandlers();
+			// Add commands
+			this.addCommands();
 
-		// Add commands
-		this.addCommands();
+			// Add settings tab
+			this.addSettingTab(new SANESettingTab(this.app, this));
 
-		// Add settings tab
-		this.addSettingTab(new SANESettingTab(this.app, this));
+			// Add ribbon icon
+			this.addRibbonIcon('sane-brain', 'SANE: Process current note', () => {
+				void this.processCurrentNote();
+			});
 
-		// Add ribbon icon
-		this.addRibbonIcon('sane-brain', 'SANE: Process current note', () => {
-			void this.processCurrentNote();
+			// Schedule processing if enabled
+			this.scheduleProcessing();
+
+			new Notice('SANE - Smart AI Note Evolution loaded!');
+		}).catch((error) => {
+			console.error('Failed to load SANE plugin:', error);
+			new Notice('Failed to load SANE plugin. Please check console for details.');
 		});
-
-		// Schedule processing if enabled
-		this.scheduleProcessing();
-
-		new Notice('SANE - Smart AI Note Evolution loaded!');
 	}
 
 	async onunload(): Promise<void> {
@@ -423,7 +425,7 @@ export default class SANEPlugin extends Plugin {
 
 		this.addCommand({
 			id: 'process-all-notes',
-			name: 'Initialize: Process all notes in target folder',
+			name: 'Initialize: process all notes in target folder',
 			callback: () => {
 				this.initializeAllNotes();
 			}

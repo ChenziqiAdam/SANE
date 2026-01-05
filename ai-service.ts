@@ -59,27 +59,27 @@ Requirements:
 - Return ONLY valid JSON, no markdown formatting`;
 
 		let response: string;
-		switch (this.settings.aiProvider) {
-			case 'openai':
-				response = await this.callOpenAI(prompt);
-				break;
-			case 'google':
-				response = await this.callGoogle(prompt);
-				break;
-			case 'grok':
-				response = await this.callGrok(prompt);
-				break;
-			case 'azure':
-				response = await this.callAzure(prompt);
-				break;
-			case 'local':
-				response = await this.callLocal(prompt);
-				break;
-			default:
-				throw new Error(`Unsupported AI provider: ${this.settings.aiProvider}`);
-		}
-
 		try {
+			switch (this.settings.aiProvider) {
+				case 'openai':
+					response = await this.callOpenAI(prompt);
+					break;
+				case 'google':
+					response = await this.callGoogle(prompt);
+					break;
+				case 'grok':
+					response = await this.callGrok(prompt);
+					break;
+				case 'azure':
+					response = await this.callAzure(prompt);
+					break;
+				case 'local':
+					response = await this.callLocal(prompt);
+					break;
+				default:
+					throw new Error(`Unsupported AI provider: ${this.settings.aiProvider}`);
+			}
+
 			// Parse JSON response (handle markdown code blocks)
 			const enhancement = this.parseAIResponse(response);
 			return {

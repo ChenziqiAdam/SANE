@@ -488,7 +488,7 @@ export class SANESettingTab extends PluginSettingTab {
 				.setButtonText('Process now')
 				.setClass('mod-cta')
 				.onClick(() => {
-					this.plugin.processCurrentNote();
+					void this.plugin.processCurrentNote();
 				}));
 
 		new Setting(containerEl)
