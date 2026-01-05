@@ -37,10 +37,7 @@ export class UnifiedAIProvider implements AIProvider {
 		const prompt = `Analyze this note and generate enhancements based on the content and related notes.
 
 Note content:
-${content}
-
-Related notes:
-${relatedContext}
+${content}${relatedContext}
 
 Please provide ONLY a valid JSON response with this exact format (no markdown, no code blocks, no extra text):
 
@@ -58,8 +55,8 @@ Requirements:
 - Keep summary under 50 words
 - Return ONLY valid JSON, no markdown formatting`;
 
-		let response: string;
 		try {
+			let response: string;
 			switch (this.settings.aiProvider) {
 				case 'openai':
 					response = await this.callOpenAI(prompt);
@@ -258,9 +255,9 @@ Requirements:
 		return result.embedding.values || [];
 	}
 
-	private async generateLocalEmbedding(content: string): Promise<number[]> {
+	private generateLocalEmbedding(content: string): Promise<number[]> {
 		// Local embedding using Ollama
-		const response = await requestUrl({
+		return requestUrl({
 			url: `${this.settings.localEndpoint}/api/embeddings`,
 			method: 'POST',
 			headers: {
@@ -270,13 +267,12 @@ Requirements:
 				model: this.settings.embeddingModel || 'nomic-embed-text',
 				prompt: content
 			})
+		}).then((response) => {
+			if (response.status !== 200) {
+				throw new Error(`Local embedding error: ${response.status}`);
+			}
+			return response.json.embedding || [];
 		});
-
-		if (response.status !== 200) {
-			throw new Error(`Local embedding error: ${response.status}`);
-		}
-
-		return response.json.embedding || [];
 	}
 
 	private generateSimpleEmbedding(content: string): number[] {

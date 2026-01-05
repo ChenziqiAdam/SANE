@@ -42,7 +42,6 @@ export class SANESettingTab extends PluginSettingTab {
 	}
 
 	private createProviderSettings(containerEl: HTMLElement): void {
-		// Use setHeading instead of createEl('h2')
 		new Setting(containerEl)
 			.setName('AI provider')
 			.setHeading();

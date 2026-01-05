@@ -49,7 +49,7 @@ export default class SANEPlugin extends Plugin {
 			this.addSettingTab(new SANESettingTab(this.app, this));
 
 			// Add ribbon icon
-			this.addRibbonIcon('sane-brain', 'SANE: Process current note', () => {
+			this.addRibbonIcon('sane-brain', 'SANE: process current note', () => {
 				void this.processCurrentNote();
 			});
 
@@ -536,42 +536,44 @@ Provider: ${this.settings.aiProvider}`;
 		new Notice(message, 10000);
 	}
 
-	private async testAIResponse(): Promise<void> {
+	private testAIResponse(): Promise<void> {
 		if (!this.aiProvider?.isConfigured()) {
 			new Notice('AI provider not configured');
-			return;
+			return Promise.resolve();
 		}
 
-		try {
-			new Notice('Testing AI response format...');
-			
-			const testContent = "This is a test note about machine learning and artificial intelligence. It discusses neural networks and their applications in modern AI systems.";
-			const testRelated = ["Introduction to AI: Basic concepts", "Neural Networks: Deep dive"];
-			
-			if (this.settings?.debugMode) {
-				console.debug('Testing AI response with:', { testContent, testRelated });
-			}
-			
-			const enhancement = await this.aiProvider.generateEnhancement(testContent, testRelated);
-			
-			if (this.settings?.debugMode) {
-				console.debug('AI enhancement result:', enhancement);
-			}
-			
-			const message = `🧪 AI test results:
+		return (async () => {
+			try {
+				new Notice('Testing AI response format...');
+				
+				const testContent = "This is a test note about machine learning and artificial intelligence. It discusses neural networks and their applications in modern AI systems.";
+				const testRelated = ["Introduction to AI: Basic concepts", "Neural Networks: Deep dive"];
+				
+				if (this.settings?.debugMode) {
+					console.debug('Testing AI response with:', { testContent, testRelated });
+				}
+				
+				const enhancement = await this.aiProvider.generateEnhancement(testContent, testRelated);
+				
+				if (this.settings?.debugMode) {
+					console.debug('AI enhancement result:', enhancement);
+				}
+				
+				const message = `🧪 AI test results:
 Tags: ${enhancement.tags.join(', ')}
 Keywords: ${enhancement.keywords.join(', ')}
 Links: ${enhancement.links.join(', ')}
 Summary: ${enhancement.summary}`;
 
-			new Notice(message, 15000);
-			
-		} catch (error) {
-			if (this.settings?.debugMode) {
-				console.error('AI test failed:', error);
+				new Notice(message, 15000);
+				
+			} catch (error) {
+				if (this.settings?.debugMode) {
+					console.error('AI test failed:', error);
+				}
+				new Notice(`AI test failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
 			}
-			new Notice(`AI test failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-		}
+		})();
 	}
 
 	// Persistence
