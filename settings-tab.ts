@@ -487,8 +487,8 @@ export class SANESettingTab extends PluginSettingTab {
 			.addButton(button => button
 				.setButtonText('Process now')
 				.setClass('mod-cta')
-				.onClick(async () => {
-					await this.plugin.processCurrentNote();
+				.onClick(() => {
+					this.plugin.processCurrentNote();
 				}));
 
 		new Setting(containerEl)
@@ -497,8 +497,8 @@ export class SANESettingTab extends PluginSettingTab {
 			.addButton(button => button
 				.setButtonText('Initialize all')
 				.setClass('mod-warning')
-				.onClick(async () => {
-					await this.plugin.initializeAllNotes();
+				.onClick(() => {
+					this.plugin.initializeAllNotes();
 				}));
 
 		new Setting(containerEl)

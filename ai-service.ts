@@ -47,7 +47,7 @@ Please provide ONLY a valid JSON response with this exact format (no markdown, n
 {
   "tags": ["tag1", "tag2", "tag3"],
   "keywords": ["keyword1", "keyword2", "keyword3"],
-  "links": [“Note Title 1”, “Note Title 2”],
+  "links": ["Note Title 1", "Note Title 2"],
   "summary": "Brief 1-2 sentence summary"
 }
 
