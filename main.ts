@@ -19,48 +19,45 @@ export default class SANEPlugin extends Plugin {
 	private scheduledProcessingTimer?: NodeJS.Timeout;
 	private costEntries: CostEntry[] = [];
 
-	onload(): void {
-		this.loadSettings().then(() => {
-			if (this.settings?.debugMode) {
-				console.debug('Loading SANE - Smart AI Note Evolution');
-			}
+	async onload(): Promise<void> {
+		await this.loadSettings();
+		
+		if (this.settings?.debugMode) {
+			console.debug('Loading SANE - Smart AI note evolution');
+		}
 
-			// Add custom icon
-			addIcon('sane-brain', BRAIN_ICON);
+		// Add custom icon
+		addIcon('sane-brain', BRAIN_ICON);
 
-			// Show security warnings for first-time users
-			if (!this.settings.privacyWarningShown || this.settings.requireBackupWarning) {
-				this.showSecurityWarnings();
-			}
+		// Show security warnings for first-time users
+		if (!this.settings.privacyWarningShown || this.settings.requireBackupWarning) {
+			this.showSecurityWarnings();
+		}
 
-			// Initialize AI provider
-			this.aiProvider = new UnifiedAIProvider(this.settings);
+		// Initialize AI provider
+		this.aiProvider = new UnifiedAIProvider(this.settings);
 
-			// Load existing embeddings
-			void this.loadEmbeddings();
+		// Load existing embeddings
+		await this.loadEmbeddings();
 
-			// Register event handlers
-			this.registerEventHandlers();
+		// Register event handlers
+		this.registerEventHandlers();
 
-			// Add commands
-			this.addCommands();
+		// Add commands
+		this.addCommands();
 
-			// Add settings tab
-			this.addSettingTab(new SANESettingTab(this.app, this));
+		// Add settings tab
+		this.addSettingTab(new SANESettingTab(this.app, this));
 
-			// Add ribbon icon
-			this.addRibbonIcon('sane-brain', 'SANE: process current note', () => {
-				void this.processCurrentNote();
-			});
-
-			// Schedule processing if enabled
-			this.scheduleProcessing();
-
-			new Notice('SANE - Smart AI Note Evolution loaded!');
-		}).catch((error) => {
-			console.error('Failed to load SANE plugin:', error);
-			new Notice('Failed to load SANE plugin. Please check console for details.');
+		// Add ribbon icon
+		this.addRibbonIcon('sane-brain', 'SANE: Process current note', () => {
+			void this.processCurrentNote();
 		});
+
+		// Schedule processing if enabled
+		this.scheduleProcessing();
+
+		new Notice('SANE - Smart AI note evolution loaded');
 	}
 
 	async onunload(): Promise<void> {
@@ -425,7 +422,7 @@ export default class SANEPlugin extends Plugin {
 
 		this.addCommand({
 			id: 'process-all-notes',
-			name: 'Initialize: process all notes in target folder',
+			name: 'Initialize: Process all notes in target folder',
 			callback: () => {
 				this.initializeAllNotes();
 			}
@@ -464,7 +461,7 @@ export default class SANEPlugin extends Plugin {
 		}
 
 		await this.processNote(activeFile);
-		new Notice('Current note processed!');
+		new Notice('Current note processed');
 	}
 
 	public initializeAllNotes(): void {
@@ -503,13 +500,13 @@ export default class SANEPlugin extends Plugin {
 					console.error(`Error processing ${file.path}:`, error);
 				}
 				if (error instanceof Error && error.message.includes('budget')) {
-					new Notice('Daily budget reached. Initialization paused.');
+					new Notice('Daily budget reached. Initialization paused');
 					break;
 				}
 			}
 		}
 
-		new Notice('Initialization complete!');
+		new Notice('Initialization complete');
 	}
 
 	public showCostSummary(): void {
@@ -524,12 +521,12 @@ export default class SANEPlugin extends Plugin {
 			.filter(entry => entry.timestamp >= thisMonth.getTime())
 			.reduce((sum, entry) => sum + entry.cost, 0);
 
-		const message = `💰 SANE Cost Summary:
+		const message = `💰 SANE cost summary:
 
 📅 Today: ${todayCosts.toFixed(4)} / ${this.settings.dailyBudget}
-📆 This Month: ${monthlyCosts.toFixed(4)}
-🔄 Total API Calls: ${this.costEntries.length}
-🧠 Notes with Embeddings: ${this.noteEmbeddings.size}
+📆 This month: ${monthlyCosts.toFixed(4)}
+🔄 Total API calls: ${this.costEntries.length}
+🧠 Notes with embeddings: ${this.noteEmbeddings.size}
 
 Provider: ${this.settings.aiProvider}`;
 
@@ -579,7 +576,7 @@ Summary: ${enhancement.summary}`;
 	// Persistence
 	private async loadEmbeddings(): Promise<void> {
 		try {
-			const stored = await this.app.loadLocalStorage('sane-embeddings');
+			const stored = this.app.loadLocalStorage('sane-embeddings');
 			if (stored) {
 				const data = JSON.parse(stored);
 				this.noteEmbeddings = new Map(data);
@@ -594,7 +591,7 @@ Summary: ${enhancement.summary}`;
 	private async saveEmbeddings(): Promise<void> {
 		try {
 			const data = Array.from(this.noteEmbeddings.entries());
-			await this.app.saveLocalStorage('sane-embeddings', JSON.stringify(data));
+			this.app.saveLocalStorage('sane-embeddings', JSON.stringify(data));
 		} catch (error) {
 			if (this.settings?.debugMode) {
 				console.error('Error saving embeddings:', error);
@@ -653,11 +650,11 @@ class SecurityWarningModal extends Modal {
 
 	onOpen() {
 		const { contentEl } = this;
-		contentEl.createEl('h2', { text: '🔒 SANE Security & Privacy Notice' });
+		contentEl.createEl('h2', { text: '🔒 SANE security & privacy notice' });
 
 		const warning = contentEl.createDiv();
 		
-		warning.createEl('h3', { text: '⚠️ Important Security Information' });
+		warning.createEl('h3', { text: '⚠️ Important security information' });
 		const beforeText = warning.createEl('p');
 		beforeText.createEl('strong', { text: 'Before using SANE, please:' });
 		
@@ -668,11 +665,11 @@ class SecurityWarningModal extends Modal {
 		backupLi.appendText(' - SANE modifies your notes by adding YAML frontmatter');
 		
 		const apiLi = beforeList.createEl('li');
-		apiLi.createEl('strong', { text: '🔐 API Keys' });
+		apiLi.createEl('strong', { text: '🔐 API keys' });
 		apiLi.appendText(' - Your API keys are stored locally and never shared');
 		
 		const privacyLi = beforeList.createEl('li');
-		privacyLi.createEl('strong', { text: '📤 Data Privacy' });
+		privacyLi.createEl('strong', { text: '📤 Data privacy' });
 		privacyLi.appendText(' - Your note content is sent to your chosen AI provider for processing');
 		
 		const costsLi = beforeList.createEl('li');
@@ -683,7 +680,7 @@ class SecurityWarningModal extends Modal {
 		scopeLi.createEl('strong', { text: '📁 Scope' });
 		scopeLi.appendText(' - Consider setting a target folder to limit which notes are processed');
 
-		warning.createEl('h3', { text: '🛡️ Privacy Recommendations' });
+		warning.createEl('h3', { text: '🛡️ Privacy recommendations' });
 		const privacyList = warning.createEl('ul');
 		privacyList.createEl('li', { text: 'Review your AI provider\'s data policies' });
 		privacyList.createEl('li', { text: 'Consider using local models for sensitive content' });
@@ -691,7 +688,7 @@ class SecurityWarningModal extends Modal {
 		privacyList.createEl('li', { text: 'Test with a few notes before processing your entire vault' });
 
 		const acknowledgment = warning.createEl('p');
-		acknowledgment.createEl('strong', { text: 'By continuing, you acknowledge these risks and confirm you have backed up your vault.' });
+		acknowledgment.createEl('strong', { text: 'By continuing, you acknowledge these risks and confirm you have backed up your vault' });
 
 		const buttonContainer = contentEl.createDiv({ cls: 'modal-button-container' });
 		
@@ -699,7 +696,7 @@ class SecurityWarningModal extends Modal {
 		cancelButton.onclick = () => this.close();
 
 		const acceptButton = buttonContainer.createEl('button', { 
-			text: 'I Understand - Continue',
+			text: 'I understand - Continue',
 			cls: 'mod-cta'
 		});
 		acceptButton.onclick = () => {

@@ -74,7 +74,7 @@ Requirements:
 					response = await this.callLocal(prompt);
 					break;
 				default:
-					throw new Error(`Unsupported AI provider: ${this.settings.aiProvider}`);
+					throw new Error(`Unsupported AI provider: ${String(this.settings.aiProvider)}`);
 			}
 
 			// Parse JSON response (handle markdown code blocks)
@@ -118,7 +118,7 @@ Requirements:
 	}
 
 	estimateCost(tokens: number): number {
-		const pricing = {
+		const pricing: Record<string, Record<string, number>> = {
 			openai: { gpt4: 0.03, embedding: 0.0001 },
 			google: { gemini: 0.0005, embedding: 0.00001 },
 			grok: { default: 0.002 },
@@ -213,9 +213,9 @@ Requirements:
 		return response.json.choices[0]?.message?.content || '';
 	}
 
-	private async callLocal(prompt: string): Promise<string> {
+	private callLocal(prompt: string): Promise<string> {
 		// Local LLM (Ollama format)
-		const response = await requestUrl({
+		return requestUrl({
 			url: `${this.settings.localEndpoint}/api/generate`,
 			method: 'POST',
 			headers: {
@@ -226,13 +226,13 @@ Requirements:
 				prompt: prompt,
 				stream: false
 			})
+		}).then((response) => {
+			if (response.status !== 200) {
+				throw new Error(`Local LLM error: ${response.status}`);
+			}
+
+			return response.json.response || '';
 		});
-
-		if (response.status !== 200) {
-			throw new Error(`Local LLM error: ${response.status}`);
-		}
-
-		return response.json.response || '';
 	}
 
 	private async generateOpenAIEmbedding(content: string): Promise<number[]> {
