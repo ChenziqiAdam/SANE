@@ -22,9 +22,7 @@ export default class SANEPlugin extends Plugin {
 	async onload(): Promise<void> {
 		await this.loadSettings();
 		
-		if (this.settings?.debugMode) {
-			console.debug('Loading SANE - Smart AI note evolution');
-		}
+		console.log('Loading SANE - Smart AI note evolution');
 
 		// Add custom icon
 		addIcon('sane-brain', BRAIN_ICON);
@@ -38,7 +36,7 @@ export default class SANEPlugin extends Plugin {
 		this.aiProvider = new UnifiedAIProvider(this.settings);
 
 		// Load existing embeddings
-		await this.loadEmbeddings();
+		this.loadEmbeddings();
 
 		// Register event handlers
 		this.registerEventHandlers();
@@ -61,9 +59,7 @@ export default class SANEPlugin extends Plugin {
 	}
 
 	async onunload(): Promise<void> {
-		if (this.settings?.debugMode) {
-			console.debug('Unloading SANE');
-		}
+		console.log('Unloading SANE');
 		
 		// Clear timers
 		if (this.delayedProcessingTimer) {
@@ -74,7 +70,7 @@ export default class SANEPlugin extends Plugin {
 		}
 
 		// Save embeddings
-		await this.saveEmbeddings();
+		this.saveEmbeddings();
 	}
 
 	async loadSettings() {
@@ -184,7 +180,7 @@ export default class SANEPlugin extends Plugin {
 			clearTimeout(this.scheduledProcessingTimer);
 		}
 
-		if (this.settings?.processingTrigger === 'scheduled') {
+		if (this.settings.processingTrigger === 'scheduled') {
 			const now = new Date();
 			const scheduled = new Date();
 			scheduled.setHours(this.settings.scheduleHour, 0, 0, 0);
@@ -202,7 +198,7 @@ export default class SANEPlugin extends Plugin {
 			}, timeUntilScheduled);
 
 			// Debug logging only in debug mode
-			if (this.settings?.debugMode) {
+			if (this.settings.debugMode) {
 				console.debug(`SANE: Next scheduled processing at ${scheduled.toLocaleString()}`);
 			}
 		}
@@ -229,7 +225,7 @@ export default class SANEPlugin extends Plugin {
 		}
 
 		// Debug logging only in debug mode
-		if (this.settings?.debugMode) {
+		if (this.settings.debugMode) {
 			console.debug(`SANE: Processing note ${file.path}`);
 		}
 
@@ -546,13 +542,13 @@ Provider: ${this.settings.aiProvider}`;
 				const testContent = "This is a test note about machine learning and artificial intelligence. It discusses neural networks and their applications in modern AI systems.";
 				const testRelated = ["Introduction to AI: Basic concepts", "Neural Networks: Deep dive"];
 				
-				if (this.settings?.debugMode) {
+				if (this.settings.debugMode) {
 					console.debug('Testing AI response with:', { testContent, testRelated });
 				}
 				
 				const enhancement = await this.aiProvider.generateEnhancement(testContent, testRelated);
 				
-				if (this.settings?.debugMode) {
+				if (this.settings.debugMode) {
 					console.debug('AI enhancement result:', enhancement);
 				}
 				
@@ -565,7 +561,7 @@ Summary: ${enhancement.summary}`;
 				new Notice(message, 15000);
 				
 			} catch (error) {
-				if (this.settings?.debugMode) {
+				if (this.settings.debugMode) {
 					console.error('AI test failed:', error);
 				}
 				new Notice(`AI test failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -574,7 +570,7 @@ Summary: ${enhancement.summary}`;
 	}
 
 	// Persistence
-	private async loadEmbeddings(): Promise<void> {
+	private loadEmbeddings(): void {
 		try {
 			const stored = this.app.loadLocalStorage('sane-embeddings');
 			if (stored) {
@@ -582,18 +578,18 @@ Summary: ${enhancement.summary}`;
 				this.noteEmbeddings = new Map(data);
 			}
 		} catch (error) {
-			if (this.settings?.debugMode) {
+			if (this.settings.debugMode) {
 				console.error('Error loading embeddings:', error);
 			}
 		}
 	}
 
-	private async saveEmbeddings(): Promise<void> {
+	private saveEmbeddings(): void {
 		try {
 			const data = Array.from(this.noteEmbeddings.entries());
 			this.app.saveLocalStorage('sane-embeddings', JSON.stringify(data));
 		} catch (error) {
-			if (this.settings?.debugMode) {
+			if (this.settings.debugMode) {
 				console.error('Error saving embeddings:', error);
 			}
 		}
