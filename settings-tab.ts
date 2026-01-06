@@ -15,7 +15,7 @@ export class SANESettingTab extends PluginSettingTab {
 		
 		// Remove top-level heading
 		containerEl.createEl('p', { 
-			text: 'SANE evolves your notes by finding the most relevant notes when you add/edit a note and enhancing them with AI-generated tags, keywords, links, and summaries.',
+			text: 'SANE evolves your notes by finding the most relevant notes when you add/edit a note and enhancing them with AI-generated tags, keywords, links, and summaries',
 			cls: 'setting-item-description'
 		});
 
@@ -164,7 +164,7 @@ export class SANESettingTab extends PluginSettingTab {
 			li3.createEl('code', { text: 'ollama pull nomic-embed-text' });
 			li3.appendText(' (for embeddings)');
 			
-			ol.createEl('li', { text: 'Start Ollama service.' });
+			ol.createEl('li', { text: 'Start Ollama service' });
 		}
 	}
 
@@ -308,10 +308,10 @@ export class SANESettingTab extends PluginSettingTab {
 		securityDiv.createEl('p').createEl('strong', { text: '🛡️ Security reminders:' });
 		
 		const securityList = securityDiv.createEl('ul');
-		securityList.createEl('li', { text: 'Your API keys are stored locally and never shared.' });
-		securityList.createEl('li', { text: 'Note content is sent to your chosen AI provider for processing.' });
+		securityList.createEl('li', { text: 'Your API keys are stored locally and never shared' });
+		securityList.createEl('li', { text: 'Note content is sent to your chosen AI provider for processing' });
 		securityList.createEl('li', { text: 'SANE adds YAML frontmatter to your notes - backup first!' });
-		securityList.createEl('li', { text: 'Consider using a specific folder to limit scope.' });
+		securityList.createEl('li', { text: 'Consider using a specific folder to limit scope' });
 	}
 
 	private createFeatureSettings(containerEl: HTMLElement): void {
@@ -417,22 +417,22 @@ export class SANESettingTab extends PluginSettingTab {
 		
 		const openaiLi = costList.createEl('li');
 		openaiLi.createEl('strong', { text: 'OpenAI:' });
-		openaiLi.appendText(' ~$1.50 (GPT-4) or ~$0.30 (GPT-3.5).');
+		openaiLi.appendText(' ~$1.50 (GPT-4) or ~$0.30 (GPT-3.5)');
 		
 		const googleLi = costList.createEl('li');
 		googleLi.createEl('strong', { text: 'Google:' });
-		googleLi.appendText(' ~$0.50 (Gemini Pro).');
+		googleLi.appendText(' ~$0.50 (Gemini Pro)');
 		
 		const grokLi = costList.createEl('li');
 		grokLi.createEl('strong', { text: 'Grok:' });
-		grokLi.appendText(' ~$2.00 (estimated).');
+		grokLi.appendText(' ~$2.00 (estimated)');
 		
 		const localLi = costList.createEl('li');
 		localLi.createEl('strong', { text: 'Local:' });
-		localLi.appendText(' Free (but requires local setup).');
+		localLi.appendText(' Free (but requires local setup)');
 		
 		const note = costDiv.createEl('p');
-		note.createEl('em', { text: 'Actual costs depend on note length and enabled features.' });
+		note.createEl('em', { text: 'Actual costs depend on note length and enabled features' });
 	}
 
 	private createAdvancedSettings(containerEl: HTMLElement): void {
@@ -482,7 +482,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Process current note')
-			.setDesc('Process the currently active note.')
+			.setDesc('Process the currently active note')
 			.addButton(button => button
 				.setButtonText('Process now')
 				.setClass('mod-cta')
@@ -492,7 +492,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Initialize all notes')
-			.setDesc('Process all notes in target folder (first-time setup).')
+			.setDesc('Process all notes in target folder (first-time setup)')
 			.addButton(button => button
 				.setButtonText('Initialize all')
 				.setClass('mod-warning')
@@ -502,7 +502,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Show cost summary')
-			.setDesc('View your usage and costs.')
+			.setDesc('View your usage and costs')
 			.addButton(button => button
 				.setButtonText('Show costs')
 				.onClick(() => {
@@ -534,8 +534,8 @@ export class SANESettingTab extends PluginSettingTab {
 		featuresLi.appendText('💡 ');
 		featuresLi.createEl('a', { href: 'https://github.com/Ghost04718/SANE/discussions', text: 'Suggest features' });
 		
-		supportList.createEl('li', { text: '🧪 Help test local LLM support.' });
-		supportList.createEl('li', { text: '👨‍💻 Contribute to development.' });
+		supportList.createEl('li', { text: '🧪 Help test local LLM support' });
+		supportList.createEl('li', { text: '👨‍💻 Contribute to development' });
 
 		new Setting(containerEl)
 			.setName('Debug info')

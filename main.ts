@@ -22,7 +22,7 @@ export default class SANEPlugin extends Plugin {
 	async onload(): Promise<void> {
 		await this.loadSettings();
 		
-		console.log('Loading SANE - Smart AI note evolution');
+		console.debug('Loading SANE - Smart AI note evolution');
 
 		// Add custom icon
 		addIcon('sane-brain', BRAIN_ICON);
@@ -58,8 +58,8 @@ export default class SANEPlugin extends Plugin {
 		new Notice('SANE - Smart AI note evolution loaded');
 	}
 
-	async onunload(): Promise<void> {
-		console.log('Unloading SANE');
+	onunload(): void {
+		console.debug('Unloading SANE');
 		
 		// Clear timers
 		if (this.delayedProcessingTimer) {
@@ -220,7 +220,7 @@ export default class SANEPlugin extends Plugin {
 
 	private async processNote(file: TFile): Promise<void> {
 		if (!this.aiProvider?.isConfigured()) {
-			new Notice('AI provider not configured. Please check settings.');
+			new Notice('AI provider not configured. Please check settings');
 			return;
 		}
 
