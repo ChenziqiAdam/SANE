@@ -164,10 +164,10 @@ For complete privacy and zero costs:
 ## 🆘 Support & Development
 
 ### ❤️ Love SANE?
-- ⭐ [Star us on GitHub](https://github.com/Ghost04718/SANE)
+- ⭐ [Star us on GitHub](https://github.com/ChenziqiAdam/SANE)
 - ☕ [Buy us a coffee](https://buymeacoffee.com/adamchen)  
-- 🐛 [Report bugs](https://github.com/Ghost04718/SANE/issues)
-- 💡 [Suggest features](https://github.com/Ghost04718/SANE/discussions)
+- 🐛 [Report bugs](https://github.com/ChenziqiAdam/SANE/issues)
+- 💡 [Suggest features](https://github.com/ChenziqiAdam/SANE/discussions)
 
 ### 🧪 Help Test & Develop
 - **Test Local LLMs**: Help us improve Ollama integration

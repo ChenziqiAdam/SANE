@@ -20,15 +20,12 @@ export default class SANEPlugin extends Plugin {
 	private costEntries: CostEntry[] = [];
 
 	async onload(): Promise<void> {
-		if (this.settings.debugMode) {
-			console.debug('Loading SANE - Smart AI Note Evolution');
-		}
+		await this.loadSettings();
+		
+		console.debug('Loading SANE - Smart AI note evolution');
 
 		// Add custom icon
 		addIcon('sane-brain', BRAIN_ICON);
-
-		// Load settings
-		await this.loadSettings();
 
 		// Show security warnings for first-time users
 		if (!this.settings.privacyWarningShown || this.settings.requireBackupWarning) {
@@ -39,7 +36,7 @@ export default class SANEPlugin extends Plugin {
 		this.aiProvider = new UnifiedAIProvider(this.settings);
 
 		// Load existing embeddings
-		await this.loadEmbeddings();
+		this.loadEmbeddings();
 
 		// Register event handlers
 		this.registerEventHandlers();
@@ -58,13 +55,11 @@ export default class SANEPlugin extends Plugin {
 		// Schedule processing if enabled
 		this.scheduleProcessing();
 
-		new Notice('SANE - Smart AI Note Evolution loaded!');
+		new Notice('SANE - Smart AI note evolution loaded');
 	}
 
-	async onunload(): Promise<void> {
-		if (this.settings.debugMode) {
-			console.debug('Unloading SANE');
-		}
+	onunload(): void {
+		console.debug('Unloading SANE');
 		
 		// Clear timers
 		if (this.delayedProcessingTimer) {
@@ -75,7 +70,7 @@ export default class SANEPlugin extends Plugin {
 		}
 
 		// Save embeddings
-		await this.saveEmbeddings();
+		this.saveEmbeddings();
 	}
 
 	async loadSettings() {
@@ -132,8 +127,8 @@ export default class SANEPlugin extends Plugin {
 		);
 	}
 
-	private shouldProcessFile(file: any): boolean {
-		if (!(file instanceof TFile) || file.extension !== 'md') {
+	private shouldProcessFile(file: TFile): boolean {
+		if (!file || file.extension !== 'md') {
 			return false;
 		}
 
@@ -174,8 +169,8 @@ export default class SANEPlugin extends Plugin {
 		}
 
 		// Set new timer
-		this.delayedProcessingTimer = setTimeout(async () => {
-			await this.processQueuedNotes();
+		this.delayedProcessingTimer = setTimeout(() => {
+			void this.processQueuedNotes();
 		}, this.settings.delayMinutes * 60 * 1000);
 	}
 
@@ -224,8 +219,8 @@ export default class SANEPlugin extends Plugin {
 	}
 
 	private async processNote(file: TFile): Promise<void> {
-		if (!this.aiProvider.isConfigured()) {
-			new Notice('AI provider not configured. Please check settings.');
+		if (!this.aiProvider?.isConfigured()) {
+			new Notice('AI provider not configured. Please check settings');
 			return;
 		}
 
@@ -425,7 +420,7 @@ export default class SANEPlugin extends Plugin {
 			id: 'process-all-notes',
 			name: 'Initialize: Process all notes in target folder',
 			callback: () => {
-				void this.initializeAllNotes();
+				this.initializeAllNotes();
 			}
 		});
 
@@ -438,7 +433,7 @@ export default class SANEPlugin extends Plugin {
 		});
 
 		// Add debug command if debug mode is enabled
-		if (this.settings.debugMode) {
+		if (this.settings?.debugMode) {
 			this.addCommand({
 				id: 'test-ai-response',
 				name: 'Test AI response (debug)',
@@ -462,48 +457,52 @@ export default class SANEPlugin extends Plugin {
 		}
 
 		await this.processNote(activeFile);
-		new Notice('Current note processed!');
+		new Notice('Current note processed');
 	}
 
-	public async initializeAllNotes(): Promise<void> {
+	public initializeAllNotes(): void {
 		const modal = new ConfirmModal(
 			this.app, 
-			'Initialize All Notes',
+			'Initialize all notes',
 			'This will process all notes in the target folder. This may take time and use API credits. Continue?',
-			async () => {
-				const allFiles = this.app.vault.getMarkdownFiles();
-				const targetFiles = allFiles.filter(file => this.shouldProcessFile(file));
-
-				new Notice(`Initializing ${targetFiles.length} notes...`);
-
-				for (let i = 0; i < targetFiles.length; i++) {
-					const file = targetFiles[i];
-					
-					try {
-						await this.processNote(file);
-						
-						if (i % 10 === 0) {
-							new Notice(`Processed ${i + 1}/${targetFiles.length} notes`, 2000);
-						}
-
-						// Small delay to avoid overwhelming the API
-						await new Promise(resolve => setTimeout(resolve, 100));
-
-					} catch (error) {
-						if (this.settings.debugMode) {
-							console.error(`Error processing ${file.path}:`, error);
-						}
-						if (error instanceof Error && error.message.includes('budget')) {
-							new Notice('Daily budget reached. Initialization paused.');
-							break;
-						}
-					}
-				}
-
-				new Notice('Initialization complete!');
+			() => {
+				void this.performInitializeAllNotes();
 			}
 		);
 		modal.open();
+	}
+
+	private async performInitializeAllNotes(): Promise<void> {
+		const allFiles = this.app.vault.getMarkdownFiles();
+		const targetFiles = allFiles.filter(file => this.shouldProcessFile(file));
+
+		new Notice(`Initializing ${targetFiles.length} notes...`);
+
+		for (let i = 0; i < targetFiles.length; i++) {
+			const file = targetFiles[i];
+			
+			try {
+				await this.processNote(file);
+				
+				if (i % 10 === 0) {
+					new Notice(`Processed ${i + 1}/${targetFiles.length} notes`, 2000);
+				}
+
+				// Small delay to avoid overwhelming the API
+				await new Promise(resolve => setTimeout(resolve, 100));
+
+			} catch (error) {
+				if (this.settings?.debugMode) {
+					console.error(`Error processing ${file.path}:`, error);
+				}
+				if (error instanceof Error && error.message.includes('budget')) {
+					new Notice('Daily budget reached. Initialization paused');
+					break;
+				}
+			}
+		}
+
+		new Notice('Initialization complete');
 	}
 
 	public showCostSummary(): void {
@@ -518,60 +517,62 @@ export default class SANEPlugin extends Plugin {
 			.filter(entry => entry.timestamp >= thisMonth.getTime())
 			.reduce((sum, entry) => sum + entry.cost, 0);
 
-		const message = `💰 SANE Cost Summary:
+		const message = `💰 SANE cost summary:
 
 📅 Today: ${todayCosts.toFixed(4)} / ${this.settings.dailyBudget}
-📆 This Month: ${monthlyCosts.toFixed(4)}
-🔄 Total API Calls: ${this.costEntries.length}
-🧠 Notes with Embeddings: ${this.noteEmbeddings.size}
+📆 This month: ${monthlyCosts.toFixed(4)}
+🔄 Total API calls: ${this.costEntries.length}
+🧠 Notes with embeddings: ${this.noteEmbeddings.size}
 
 Provider: ${this.settings.aiProvider}`;
 
 		new Notice(message, 10000);
 	}
 
-	private async testAIResponse(): Promise<void> {
-		if (!this.aiProvider.isConfigured()) {
+	private testAIResponse(): Promise<void> {
+		if (!this.aiProvider?.isConfigured()) {
 			new Notice('AI provider not configured');
-			return;
+			return Promise.resolve();
 		}
 
-		try {
-			new Notice('Testing AI response format...');
-			
-			const testContent = "This is a test note about machine learning and artificial intelligence. It discusses neural networks and their applications in modern AI systems.";
-			const testRelated = ["Introduction to AI: Basic concepts", "Neural Networks: Deep dive"];
-			
-			if (this.settings.debugMode) {
-				console.debug('Testing AI response with:', { testContent, testRelated });
-			}
-			
-			const enhancement = await this.aiProvider.generateEnhancement(testContent, testRelated);
-			
-			if (this.settings.debugMode) {
-				console.debug('AI enhancement result:', enhancement);
-			}
-			
-			const message = `🧪 AI Test Results:
+		return (async () => {
+			try {
+				new Notice('Testing AI response format...');
+				
+				const testContent = "This is a test note about machine learning and artificial intelligence. It discusses neural networks and their applications in modern AI systems.";
+				const testRelated = ["Introduction to AI: Basic concepts", "Neural Networks: Deep dive"];
+				
+				if (this.settings.debugMode) {
+					console.debug('Testing AI response with:', { testContent, testRelated });
+				}
+				
+				const enhancement = await this.aiProvider.generateEnhancement(testContent, testRelated);
+				
+				if (this.settings.debugMode) {
+					console.debug('AI enhancement result:', enhancement);
+				}
+				
+				const message = `🧪 AI test results:
 Tags: ${enhancement.tags.join(', ')}
 Keywords: ${enhancement.keywords.join(', ')}
 Links: ${enhancement.links.join(', ')}
 Summary: ${enhancement.summary}`;
 
-			new Notice(message, 15000);
-			
-		} catch (error) {
-			if (this.settings.debugMode) {
-				console.error('AI test failed:', error);
+				new Notice(message, 15000);
+				
+			} catch (error) {
+				if (this.settings.debugMode) {
+					console.error('AI test failed:', error);
+				}
+				new Notice(`AI test failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
 			}
-			new Notice(`AI test failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-		}
+		})();
 	}
 
 	// Persistence
-	private async loadEmbeddings(): Promise<void> {
+	private loadEmbeddings(): void {
 		try {
-			const stored = await this.app.loadLocalStorage('sane-embeddings');
+			const stored = this.app.loadLocalStorage('sane-embeddings');
 			if (stored) {
 				const data = JSON.parse(stored);
 				this.noteEmbeddings = new Map(data);
@@ -583,10 +584,10 @@ Summary: ${enhancement.summary}`;
 		}
 	}
 
-	private async saveEmbeddings(): Promise<void> {
+	private saveEmbeddings(): void {
 		try {
 			const data = Array.from(this.noteEmbeddings.entries());
-			await this.app.saveLocalStorage('sane-embeddings', JSON.stringify(data));
+			this.app.saveLocalStorage('sane-embeddings', JSON.stringify(data));
 		} catch (error) {
 			if (this.settings.debugMode) {
 				console.error('Error saving embeddings:', error);
@@ -645,11 +646,11 @@ class SecurityWarningModal extends Modal {
 
 	onOpen() {
 		const { contentEl } = this;
-		contentEl.createEl('h2', { text: '🔒 SANE Security & Privacy Notice' });
+		contentEl.createEl('h2', { text: '🔒 SANE security & privacy notice' });
 
 		const warning = contentEl.createDiv();
 		
-		warning.createEl('h3', { text: '⚠️ Important Security Information' });
+		warning.createEl('h3', { text: '⚠️ Important security information' });
 		const beforeText = warning.createEl('p');
 		beforeText.createEl('strong', { text: 'Before using SANE, please:' });
 		
@@ -660,11 +661,11 @@ class SecurityWarningModal extends Modal {
 		backupLi.appendText(' - SANE modifies your notes by adding YAML frontmatter');
 		
 		const apiLi = beforeList.createEl('li');
-		apiLi.createEl('strong', { text: '🔐 API Keys' });
+		apiLi.createEl('strong', { text: '🔐 API keys' });
 		apiLi.appendText(' - Your API keys are stored locally and never shared');
 		
 		const privacyLi = beforeList.createEl('li');
-		privacyLi.createEl('strong', { text: '📤 Data Privacy' });
+		privacyLi.createEl('strong', { text: '📤 Data privacy' });
 		privacyLi.appendText(' - Your note content is sent to your chosen AI provider for processing');
 		
 		const costsLi = beforeList.createEl('li');
@@ -675,7 +676,7 @@ class SecurityWarningModal extends Modal {
 		scopeLi.createEl('strong', { text: '📁 Scope' });
 		scopeLi.appendText(' - Consider setting a target folder to limit which notes are processed');
 
-		warning.createEl('h3', { text: '🛡️ Privacy Recommendations' });
+		warning.createEl('h3', { text: '🛡️ Privacy recommendations' });
 		const privacyList = warning.createEl('ul');
 		privacyList.createEl('li', { text: 'Review your AI provider\'s data policies' });
 		privacyList.createEl('li', { text: 'Consider using local models for sensitive content' });
@@ -683,7 +684,7 @@ class SecurityWarningModal extends Modal {
 		privacyList.createEl('li', { text: 'Test with a few notes before processing your entire vault' });
 
 		const acknowledgment = warning.createEl('p');
-		acknowledgment.createEl('strong', { text: 'By continuing, you acknowledge these risks and confirm you have backed up your vault.' });
+		acknowledgment.createEl('strong', { text: 'By continuing, you acknowledge these risks and confirm you have backed up your vault' });
 
 		const buttonContainer = contentEl.createDiv({ cls: 'modal-button-container' });
 		
@@ -691,7 +692,7 @@ class SecurityWarningModal extends Modal {
 		cancelButton.onclick = () => this.close();
 
 		const acceptButton = buttonContainer.createEl('button', { 
-			text: 'I Understand - Continue',
+			text: 'I understand - Continue',
 			cls: 'mod-cta'
 		});
 		acceptButton.onclick = () => {

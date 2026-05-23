@@ -15,34 +15,33 @@ export class SANESettingTab extends PluginSettingTab {
 		
 		// Remove top-level heading
 		containerEl.createEl('p', { 
-			text: 'SANE evolves your notes by finding the most relevant notes when you add/edit a note and enhancing them with AI-generated tags, keywords, links, and summaries.',
+			text: 'SANE evolves your notes by finding the most relevant notes when you add/edit a note and enhancing them with AI-generated tags, keywords, links, and summaries',
 			cls: 'setting-item-description'
 		});
 
-		// AI Provider Configuration
+		// AI provider configuration
 		this.createProviderSettings(containerEl);
 		
-		// Processing Settings
+		// Processing settings
 		this.createProcessingSettings(containerEl);
 		
-		// Security & Scope Settings
+		// Security & scope settings
 		this.createSecuritySettings(containerEl);
 		
-		// Feature Toggles
+		// Feature toggles
 		this.createFeatureSettings(containerEl);
 		
-		// Cost Management
+		// Cost management
 		this.createCostSettings(containerEl);
 		
-		// Advanced Settings
+		// Advanced settings
 		this.createAdvancedSettings(containerEl);
 		
-		// Actions & Support
+		// Actions & support
 		this.createActionsSettings(containerEl);
 	}
 
 	private createProviderSettings(containerEl: HTMLElement): void {
-		// Use setHeading instead of createEl('h2')
 		new Setting(containerEl)
 			.setName('AI provider')
 			.setHeading();
@@ -72,7 +71,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		if (provider === 'openai') {
 			new Setting(containerEl)
-				.setName('OpenAI API Key')
+				.setName('OpenAI API key')
 				.setDesc('Your OpenAI API key (starts with sk-)')
 				.addText(text => text
 					.setPlaceholder('sk-...')
@@ -85,7 +84,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		if (provider === 'google') {
 			new Setting(containerEl)
-				.setName('Google AI API Key')
+				.setName('Google AI API key')
 				.setDesc('Your Google AI Studio API key')
 				.addText(text => text
 					.setPlaceholder('AIza...')
@@ -98,7 +97,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		if (provider === 'grok') {
 			new Setting(containerEl)
-				.setName('Grok API Key')
+				.setName('Grok API key')
 				.setDesc('Your X.AI Grok API key')
 				.addText(text => text
 					.setPlaceholder('xai-...')
@@ -111,7 +110,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		if (provider === 'azure') {
 			new Setting(containerEl)
-				.setName('Azure API Key')
+				.setName('Azure API key')
 				.setDesc('Your Azure OpenAI API key')
 				.addText(text => text
 					.setPlaceholder('Azure API key')
@@ -122,7 +121,7 @@ export class SANESettingTab extends PluginSettingTab {
 					}));
 
 			new Setting(containerEl)
-				.setName('Azure Endpoint')
+				.setName('Azure endpoint')
 				.setDesc('Your Azure OpenAI endpoint URL')
 				.addText(text => text
 					.setPlaceholder('https://your-resource.openai.azure.com')
@@ -135,7 +134,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		if (provider === 'local') {
 			new Setting(containerEl)
-				.setName('Local Endpoint')
+				.setName('Local endpoint')
 				.setDesc('Your local LLM endpoint (Ollama default: http://localhost:11434)')
 				.addText(text => text
 					.setPlaceholder('http://localhost:11434')
@@ -147,7 +146,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 			const helpDiv = containerEl.createDiv({ cls: 'setting-item-description' });
 			const title = helpDiv.createEl('p');
-			title.createEl('strong', { text: 'Local LLM Setup:' });
+			title.createEl('strong', { text: 'Local LLM setup:' });
 			
 			const ol = helpDiv.createEl('ol');
 			
@@ -173,7 +172,7 @@ export class SANESettingTab extends PluginSettingTab {
 		const provider = this.plugin.settings.aiProvider;
 		
 		new Setting(containerEl)
-			.setName('LLM Model')
+			.setName('LLM model')
 			.setDesc('Model used for text generation')
 			.addText(text => text
 				.setPlaceholder(this.getDefaultLLMModel(provider))
@@ -185,7 +184,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		if (['openai', 'google', 'local'].includes(provider)) {
 			new Setting(containerEl)
-				.setName('Embedding Model')
+				.setName('Embedding model')
 				.setDesc('Model used for generating embeddings')
 				.addText(text => text
 					.setPlaceholder(this.getDefaultEmbeddingModel(provider))
@@ -238,10 +237,10 @@ export class SANESettingTab extends PluginSettingTab {
 			.setName('Processing trigger')
 			.setDesc('When should SANE process notes?')
 			.addDropdown(dropdown => dropdown
-				.addOption('immediate', 'Immediate - Process right away')
-				.addOption('delayed', 'Delayed - Wait X minutes after editing stops')
-				.addOption('scheduled', 'Scheduled - Process once daily at set time')
-				.addOption('manual', 'Manual - Only process when commanded')
+				.addOption('immediate', 'Immediate - process right away')
+				.addOption('delayed', 'Delayed - wait X minutes after editing stops')
+				.addOption('scheduled', 'Scheduled - process once daily at set time')
+				.addOption('manual', 'Manual - only process when commanded')
 				.setValue(this.plugin.settings.processingTrigger)
 				.onChange(async (value: 'immediate' | 'delayed' | 'scheduled' | 'manual') => {
 					this.plugin.settings.processingTrigger = value;
@@ -433,7 +432,7 @@ export class SANESettingTab extends PluginSettingTab {
 		localLi.appendText(' Free (but requires local setup)');
 		
 		const note = costDiv.createEl('p');
-		note.createEl('em', { text: 'Actual costs depend on note length and enabled features.' });
+		note.createEl('em', { text: 'Actual costs depend on note length and enabled features' });
 	}
 
 	private createAdvancedSettings(containerEl: HTMLElement): void {
@@ -487,8 +486,8 @@ export class SANESettingTab extends PluginSettingTab {
 			.addButton(button => button
 				.setButtonText('Process now')
 				.setClass('mod-cta')
-				.onClick(async () => {
-					await this.plugin.processCurrentNote();
+				.onClick(() => {
+					void this.plugin.processCurrentNote();
 				}));
 
 		new Setting(containerEl)
@@ -497,8 +496,8 @@ export class SANESettingTab extends PluginSettingTab {
 			.addButton(button => button
 				.setButtonText('Initialize all')
 				.setClass('mod-warning')
-				.onClick(async () => {
-					await this.plugin.initializeAllNotes();
+				.onClick(() => {
+					this.plugin.initializeAllNotes();
 				}));
 
 		new Setting(containerEl)
@@ -560,12 +559,12 @@ export class SANESettingTab extends PluginSettingTab {
 		const queueSize = this.plugin['processingQueue']?.size || 0;
 		
 		const infoItems = [
-			{ label: 'AI Provider:', value: this.plugin.settings.aiProvider },
-			{ label: 'AI Configured:', value: aiConfigured ? 'Yes' : 'No' },
-			{ label: 'Notes with Embeddings:', value: embeddingsCount.toString() },
-			{ label: 'Processing Queue:', value: queueSize.toString() },
-			{ label: 'Target Folder:', value: this.plugin.settings.targetFolder || 'All folders' },
-			{ label: 'Processing Trigger:', value: this.plugin.settings.processingTrigger }
+			{ label: 'AI provider:', value: this.plugin.settings.aiProvider },
+			{ label: 'AI configured:', value: aiConfigured ? 'Yes' : 'No' },
+			{ label: 'Notes with embeddings:', value: embeddingsCount.toString() },
+			{ label: 'Processing queue:', value: queueSize.toString() },
+			{ label: 'Target folder:', value: this.plugin.settings.targetFolder || 'All folders' },
+			{ label: 'Processing trigger:', value: this.plugin.settings.processingTrigger }
 		];
 		
 		infoItems.forEach(item => {

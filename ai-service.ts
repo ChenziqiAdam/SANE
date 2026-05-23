@@ -37,17 +37,14 @@ export class UnifiedAIProvider implements AIProvider {
 		const prompt = `Analyze this note and generate enhancements based on the content and related notes.
 
 Note content:
-${content}
-
-Related notes:
-${relatedContext}
+${content}${relatedContext}
 
 Please provide ONLY a valid JSON response with this exact format (no markdown, no code blocks, no extra text):
 
 {
   "tags": ["tag1", "tag2", "tag3"],
   "keywords": ["keyword1", "keyword2", "keyword3"],
-  "links": [“Note Title 1”, “Note Title 2”],
+  "links": ["Note Title 1", "Note Title 2"],
   "summary": "Brief 1-2 sentence summary"
 }
 
@@ -58,28 +55,28 @@ Requirements:
 - Keep summary under 50 words
 - Return ONLY valid JSON, no markdown formatting`;
 
-		let response: string;
-		switch (this.settings.aiProvider) {
-			case 'openai':
-				response = await this.callOpenAI(prompt);
-				break;
-			case 'google':
-				response = await this.callGoogle(prompt);
-				break;
-			case 'grok':
-				response = await this.callGrok(prompt);
-				break;
-			case 'azure':
-				response = await this.callAzure(prompt);
-				break;
-			case 'local':
-				response = await this.callLocal(prompt);
-				break;
-			default:
-				throw new Error(`Unsupported AI provider: ${this.settings.aiProvider}`);
-		}
-
 		try {
+			let response: string;
+			switch (this.settings.aiProvider) {
+				case 'openai':
+					response = await this.callOpenAI(prompt);
+					break;
+				case 'google':
+					response = await this.callGoogle(prompt);
+					break;
+				case 'grok':
+					response = await this.callGrok(prompt);
+					break;
+				case 'azure':
+					response = await this.callAzure(prompt);
+					break;
+				case 'local':
+					response = await this.callLocal(prompt);
+					break;
+				default:
+					throw new Error(`Unsupported AI provider: ${String(this.settings.aiProvider)}`);
+			}
+
 			// Parse JSON response (handle markdown code blocks)
 			const enhancement = this.parseAIResponse(response);
 			return {
@@ -114,14 +111,14 @@ Requirements:
 					return this.generateSimpleEmbedding(content);
 			}
 		} catch (error) {
-			// console.error('Error generating embedding:', error);
-			new Notice(`Failed to generate embedding: ${error.message}`);
+			const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+			new Notice(`Failed to generate embedding: ${errorMessage}`);
 			return [];
 		}
 	}
 
 	estimateCost(tokens: number): number {
-		const pricing = {
+		const pricing: Record<string, Record<string, number>> = {
 			openai: { gpt4: 0.03, embedding: 0.0001 },
 			google: { gemini: 0.0005, embedding: 0.00001 },
 			grok: { default: 0.002 },
@@ -130,7 +127,7 @@ Requirements:
 		};
 
 		const provider = this.settings.aiProvider;
-		const providerPricing = pricing[provider as keyof typeof pricing];
+		const providerPricing = pricing[provider];
 		let basePrice = 0.01; // default fallback
 		
 		if (providerPricing) {
@@ -164,7 +161,7 @@ Requirements:
 
 		const model = this.googleClient.getGenerativeModel({ model: this.settings.llmModel });
 		const result = await model.generateContent(prompt);
-		const response = await result.response;
+		const response = result.response;
 		
 		return response.text();
 	}
@@ -216,9 +213,9 @@ Requirements:
 		return response.json.choices[0]?.message?.content || '';
 	}
 
-	private async callLocal(prompt: string): Promise<string> {
+	private callLocal(prompt: string): Promise<string> {
 		// Local LLM (Ollama format)
-		const response = await requestUrl({
+		return requestUrl({
 			url: `${this.settings.localEndpoint}/api/generate`,
 			method: 'POST',
 			headers: {
@@ -229,13 +226,13 @@ Requirements:
 				prompt: prompt,
 				stream: false
 			})
+		}).then((response) => {
+			if (response.status !== 200) {
+				throw new Error(`Local LLM error: ${response.status}`);
+			}
+
+			return response.json.response || '';
 		});
-
-		if (response.status !== 200) {
-			throw new Error(`Local LLM error: ${response.status}`);
-		}
-
-		return response.json.response || '';
 	}
 
 	private async generateOpenAIEmbedding(content: string): Promise<number[]> {
@@ -258,9 +255,9 @@ Requirements:
 		return result.embedding.values || [];
 	}
 
-	private async generateLocalEmbedding(content: string): Promise<number[]> {
+	private generateLocalEmbedding(content: string): Promise<number[]> {
 		// Local embedding using Ollama
-		const response = await requestUrl({
+		return requestUrl({
 			url: `${this.settings.localEndpoint}/api/embeddings`,
 			method: 'POST',
 			headers: {
@@ -270,13 +267,12 @@ Requirements:
 				model: this.settings.embeddingModel || 'nomic-embed-text',
 				prompt: content
 			})
+		}).then((response) => {
+			if (response.status !== 200) {
+				throw new Error(`Local embedding error: ${response.status}`);
+			}
+			return response.json.embedding || [];
 		});
-
-		if (response.status !== 200) {
-			throw new Error(`Local embedding error: ${response.status}`);
-		}
-
-		return response.json.embedding || [];
 	}
 
 	private generateSimpleEmbedding(content: string): number[] {
@@ -352,7 +348,7 @@ Requirements:
 			
 		} catch (error) {
 			 // Debug logging only in debug mode
-			if (this.settings && this.settings.debugMode) {
+			if (this.settings?.debugMode) {
 				console.error('Failed to parse AI response:', error);
 				console.debug('Raw response:', response);
 			}
@@ -364,7 +360,7 @@ Requirements:
 
 	private extractWithFallback(response: string): Enhancement {
 		// Debug logging only in debug mode
-		if (this.settings && this.settings.debugMode) {
+		if (this.settings?.debugMode) {
 			console.debug('Using fallback extraction for response:', response);
 		}
 		
@@ -400,7 +396,17 @@ Requirements:
 				const linksStr = linksMatch[1];
 				result.links = linksStr.split(',')
 					.map(l => l.trim().replace(/['"]/g, ''))
-					.filter(l => l.length > 0);
+					.filter(l => l.length > 0)
+					.map(link => {
+						// If the link is already in [[note]] format, keep it
+						if (link.startsWith('[[') && link.endsWith(']]')) {
+							return link;
+						}
+						// If it's a plain string like "note title", convert to [[note title]]
+						// Remove any quotes that might be in the string
+						const cleanLink = link.replace(/['"]/g, '').trim();
+						return `[[${cleanLink}]]`;
+					});
 			}
 			
 			// Try to extract summary
@@ -413,7 +419,7 @@ Requirements:
 			
 		} catch (error) {
 			// Debug logging only in debug mode
-			if (this.settings && this.settings.debugMode) {
+			if (this.settings?.debugMode) {
 				console.error('Fallback extraction failed:', error);
 			}
 		}
