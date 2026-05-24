@@ -15,14 +15,13 @@ export class SANESettingTab extends PluginSettingTab {
 		containerEl.empty();
 		
 		// Remove top-level heading
-		containerEl.createEl('p', { 
-			text: 'SANE evolves your notes by finding the most relevant notes when you add/edit a note and enhancing them with AI-generated tags, keywords, links, and summaries',
+		containerEl.createEl('p', {
+			text: 'When you add or edit a note, SANE finds the most relevant notes in your vault and enhances them with AI-generated tags, keywords, links, and summaries.',
 			cls: 'setting-item-description'
 		});
 
 		// AI provider configuration
-		this.createProviderSettings(containerEl);
-		this.createEmbeddingProviderSettings(containerEl);
+		this.createAIConfigSettings(containerEl);
 
 		// Processing settings
 		this.createProcessingSettings(containerEl);
@@ -41,16 +40,18 @@ export class SANESettingTab extends PluginSettingTab {
 		
 		// Actions & support
 		this.createActionsSettings(containerEl);
+		this.createDangerZoneSettings(containerEl);
 	}
 
-	private createProviderSettings(containerEl: HTMLElement): void {
+	private createAIConfigSettings(containerEl: HTMLElement): void {
 		new Setting(containerEl)
-			.setName('AI provider')
+			.setName('AI configuration')
 			.setHeading();
 
+		// --- LLM subsection ---
 		new Setting(containerEl)
-			.setName('AI provider')
-			.setDesc('Choose your AI provider')
+			.setName('LLM provider')
+			.setDesc('Generates tags, keywords, links, and summaries for your notes')
 			.addDropdown(dropdown => dropdown
 				.addOption('openai', 'OpenAI')
 				.addOption('google', 'Google AI')
@@ -61,20 +62,15 @@ export class SANESettingTab extends PluginSettingTab {
 				.onChange(async (value: 'openai' | 'google' | 'grok' | 'azure' | 'local') => {
 					this.plugin.settings.aiProvider = value;
 					await this.plugin.saveSettings();
-					this.display(); // Refresh to show relevant settings
+					this.display();
 				}));
 
-		this.createProviderSpecificSettings(containerEl);
-		this.createModelSettings(containerEl);
-	}
+		const llmProvider = this.plugin.settings.aiProvider;
 
-	private createProviderSpecificSettings(containerEl: HTMLElement): void {
-		const provider = this.plugin.settings.aiProvider;
-
-		if (provider === 'openai') {
+		if (llmProvider === 'openai') {
 			new Setting(containerEl)
 				.setName('OpenAI API key')
-				.setDesc('Your OpenAI API key (starts with sk-)')
+				.setDesc('Starts with sk-')
 				.addComponent(el => new SecretComponent(this.app, el)
 					.setValue(this.plugin.settings.openaiSecretName)
 					.onChange(async (value) => {
@@ -83,10 +79,10 @@ export class SANESettingTab extends PluginSettingTab {
 					}));
 		}
 
-		if (provider === 'google') {
+		if (llmProvider === 'google') {
 			new Setting(containerEl)
 				.setName('Google AI API key')
-				.setDesc('Your Google AI Studio API key')
+				.setDesc('From Google AI Studio')
 				.addComponent(el => new SecretComponent(this.app, el)
 					.setValue(this.plugin.settings.googleSecretName)
 					.onChange(async (value) => {
@@ -95,10 +91,10 @@ export class SANESettingTab extends PluginSettingTab {
 					}));
 		}
 
-		if (provider === 'grok') {
+		if (llmProvider === 'grok') {
 			new Setting(containerEl)
 				.setName('Grok API key')
-				.setDesc('Your X.AI Grok API key')
+				.setDesc('From X.AI')
 				.addComponent(el => new SecretComponent(this.app, el)
 					.setValue(this.plugin.settings.grokSecretName)
 					.onChange(async (value) => {
@@ -107,10 +103,9 @@ export class SANESettingTab extends PluginSettingTab {
 					}));
 		}
 
-		if (provider === 'azure') {
+		if (llmProvider === 'azure') {
 			new Setting(containerEl)
 				.setName('Azure API key')
-				.setDesc('Your Azure OpenAI API key')
 				.addComponent(el => new SecretComponent(this.app, el)
 					.setValue(this.plugin.settings.azureSecretName)
 					.onChange(async (value) => {
@@ -120,7 +115,6 @@ export class SANESettingTab extends PluginSettingTab {
 
 			new Setting(containerEl)
 				.setName('Azure endpoint')
-				.setDesc('Your Azure OpenAI endpoint URL')
 				.addText(text => text
 					.setPlaceholder('https://your-resource.openai.azure.com')
 					.setValue(this.plugin.settings.azureEndpoint)
@@ -130,10 +124,10 @@ export class SANESettingTab extends PluginSettingTab {
 					}));
 		}
 
-		if (provider === 'local') {
+		if (llmProvider === 'local') {
 			new Setting(containerEl)
-				.setName('Local endpoint')
-				.setDesc('OpenAI-compatible endpoint (e.g. Ollama, vLLM, llama.cpp)')
+				.setName('LLM endpoint')
+				.setDesc('OpenAI-compatible endpoint (Ollama, vLLM, llama.cpp)')
 				.addText(text => text
 					.setPlaceholder(DEFAULT_LOCAL_ENDPOINT)
 					.setValue(this.plugin.settings.localEndpoint)
@@ -143,38 +137,29 @@ export class SANESettingTab extends PluginSettingTab {
 					}));
 		}
 
-		// Test LLM button
-		const testDiv = containerEl.createDiv({ cls: 'setting-item' });
-		const testButtons = testDiv.createDiv({ cls: 'setting-item-control' });
-		const statusDiv = testDiv.createDiv({ cls: 'setting-item-description' });
-
-		testButtons.createEl('button', { text: 'Test LLM' }).addEventListener('click', async () => {
-			statusDiv.setText('Testing LLM...');
-			const result = await this.plugin.aiProvider.testLLM();
-			statusDiv.setText(result.ok ? '✓ LLM: Connected' : `✗ LLM: ${result.message}`);
-		});
-	}
-
-	private createModelSettings(containerEl: HTMLElement): void {
-		const provider = this.plugin.settings.aiProvider;
-
-		const llmModelLabel = provider === 'local'
-			? '(configured by local server)'
+		const llmModelLabel = llmProvider === 'local'
+			? 'configured by local server'
 			: this.plugin.settings.llmModel;
 
 		new Setting(containerEl)
 			.setName('LLM model')
-			.setDesc(`Model: ${llmModelLabel}`);
-	}
+			.setDesc(llmModelLabel)
+			.addButton(button => button
+				.setButtonText('Test LLM')
+				.setClass('mod-cta')
+				.onClick(async () => {
+					button.setButtonText('Testing…');
+					button.setDisabled(true);
+					const result = await this.plugin.aiProvider.testLLM();
+					button.setButtonText(result.ok ? '✓ Connected' : '✗ Failed');
+					button.setDisabled(false);
+					setTimeout(() => button.setButtonText('Test LLM'), 3000);
+				}));
 
-	private createEmbeddingProviderSettings(containerEl: HTMLElement): void {
+		// --- Embedding subsection ---
 		new Setting(containerEl)
 			.setName('Embedding provider')
-			.setHeading();
-
-		new Setting(containerEl)
-			.setName('Embedding provider')
-			.setDesc('Provider used for generating note embeddings (for similarity search)')
+			.setDesc('Used for semantic similarity search between notes')
 			.addDropdown(dropdown => dropdown
 				.addOption('openai', 'OpenAI')
 				.addOption('google', 'Google AI')
@@ -192,7 +177,7 @@ export class SANESettingTab extends PluginSettingTab {
 		if (embeddingProvider === 'openai') {
 			new Setting(containerEl)
 				.setName('Embedding OpenAI API key')
-				.setDesc('OpenAI API key for embeddings (starts with sk-)')
+				.setDesc('Starts with sk-')
 				.addComponent(el => new SecretComponent(this.app, el)
 					.setValue(this.plugin.settings.embeddingOpenaiSecretName)
 					.onChange(async (value) => {
@@ -204,7 +189,7 @@ export class SANESettingTab extends PluginSettingTab {
 		if (embeddingProvider === 'google') {
 			new Setting(containerEl)
 				.setName('Embedding Google AI API key')
-				.setDesc('Google AI Studio API key for embeddings')
+				.setDesc('From Google AI Studio')
 				.addComponent(el => new SecretComponent(this.app, el)
 					.setValue(this.plugin.settings.embeddingGoogleSecretName)
 					.onChange(async (value) => {
@@ -215,8 +200,8 @@ export class SANESettingTab extends PluginSettingTab {
 
 		if (embeddingProvider === 'local') {
 			new Setting(containerEl)
-				.setName('Embedding local endpoint')
-				.setDesc('OpenAI-compatible endpoint for embeddings (e.g. Ollama, vLLM, llama.cpp)')
+				.setName('Embedding endpoint')
+				.setDesc('OpenAI-compatible endpoint for embeddings')
 				.addText(text => text
 					.setPlaceholder(DEFAULT_LOCAL_ENDPOINT)
 					.setValue(this.plugin.settings.embeddingLocalEndpoint)
@@ -227,23 +212,23 @@ export class SANESettingTab extends PluginSettingTab {
 		}
 
 		const embeddingModelLabel = embeddingProvider === 'local'
-			? '(configured by local server)'
+			? 'configured by local server'
 			: this.plugin.settings.embeddingModel;
 
 		new Setting(containerEl)
 			.setName('Embedding model')
-			.setDesc(`Model: ${embeddingModelLabel}`);
-
-		// Test button
-		const testDiv = containerEl.createDiv({ cls: 'setting-item' });
-		const testButtons = testDiv.createDiv({ cls: 'setting-item-control' });
-		const statusDiv = testDiv.createDiv({ cls: 'setting-item-description' });
-
-		testButtons.createEl('button', { text: 'Test Embeddings', cls: 'mod-cta' }).addEventListener('click', async () => {
-			statusDiv.setText('Testing embeddings...');
-			const result = await this.plugin.aiProvider.testConnection();
-			statusDiv.setText(result.ok ? '✓ Embeddings: Connected' : `✗ Embeddings: ${result.message}`);
-		});
+			.setDesc(embeddingModelLabel)
+			.addButton(button => button
+				.setButtonText('Test Embeddings')
+				.setClass('mod-cta')
+				.onClick(async () => {
+					button.setButtonText('Testing…');
+					button.setDisabled(true);
+					const result = await this.plugin.aiProvider.testConnection();
+					button.setButtonText(result.ok ? '✓ Connected' : '✗ Failed');
+					button.setDisabled(false);
+					setTimeout(() => button.setButtonText('Test Embeddings'), 3000);
+				}));
 	}
 
 	private createProcessingSettings(containerEl: HTMLElement): void {
@@ -314,35 +299,19 @@ export class SANESettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Target folder')
-			.setDesc('Only process notes in this folder (leave empty for all folders)')
+			.setDesc('Only process notes in this folder. Leave empty to process all folders.')
 			.addText(text => text
-				.setPlaceholder('e.g., "Notes" or "Knowledge Base"')
+				.setPlaceholder('e.g. Notes or Knowledge Base')
 				.setValue(this.plugin.settings.targetFolder)
 				.onChange(async (value) => {
 					this.plugin.settings.targetFolder = value;
 					await this.plugin.saveSettings();
 				}));
 
-		new Setting(containerEl)
-			.setName('Re-run setup wizard')
-			.setDesc('Open the setup wizard again to reconfigure provider, scope, and test your connection')
-			.addButton(button => button
-				.setButtonText('Open wizard')
-				.onClick(() => {
-					this.plugin.settings.privacyWarningShown = false;
-					this.plugin.settings.requireBackupWarning = false;
-					void this.plugin.saveSettings();
-					this.plugin.showOnboardingWizard();
-				}));
-
-		const securityDiv = containerEl.createDiv({ cls: 'setting-item-description' });
-		securityDiv.createEl('p').createEl('strong', { text: 'Security reminders:' });
-		
-		const securityList = securityDiv.createEl('ul');
-		securityList.createEl('li', { text: 'Your API keys are stored locally and never shared' });
-		securityList.createEl('li', { text: 'Note content is sent to your chosen AI provider for processing' });
-		securityList.createEl('li', { text: 'SANE adds YAML frontmatter to your notes - backup first!' });
-		securityList.createEl('li', { text: 'Consider using a specific folder to limit scope' });
+		containerEl.createEl('p', {
+			text: 'API keys are stored locally. Note content is sent to your chosen AI provider. For complete privacy, use a local LLM.',
+			cls: 'setting-item-description'
+		});
 	}
 
 	private createFeatureSettings(containerEl: HTMLElement): void {
@@ -513,7 +482,7 @@ export class SANESettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Process current note')
-			.setDesc('Process the currently active note')
+			.setDesc('Run SANE on the currently active note')
 			.addButton(button => button
 				.setButtonText('Process now')
 				.setClass('mod-cta')
@@ -523,17 +492,16 @@ export class SANESettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Initialize all notes')
-			.setDesc('Process all notes in target folder (first-time setup)')
+			.setDesc('Process every note in the target folder — use for first-time setup')
 			.addButton(button => button
 				.setButtonText('Initialize all')
-				.setClass('mod-warning')
 				.onClick(() => {
 					this.plugin.initializeAllNotes();
 				}));
 
 		new Setting(containerEl)
 			.setName('Show cost summary')
-			.setDesc('View your usage and costs')
+			.setDesc('View usage and estimated spend')
 			.addButton(button => button
 				.setButtonText('Show costs')
 				.onClick(() => {
@@ -541,60 +509,60 @@ export class SANESettingTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
+			.setName('Re-run setup wizard')
+			.setDesc('Reconfigure provider, scope, and test your connection')
+			.addButton(button => button
+				.setButtonText('Open wizard')
+				.onClick(() => {
+					this.plugin.settings.privacyWarningShown = false;
+					this.plugin.settings.requireBackupWarning = false;
+					void this.plugin.saveSettings();
+					this.plugin.showOnboardingWizard();
+				}));
+
+		new Setting(containerEl)
+			.setName('Debug info')
+			.setHeading();
+
+		const debugDiv = containerEl.createDiv();
+		this.updateDebugInfo(debugDiv);
+
+		new Setting(containerEl)
+			.setName('Refresh debug info')
+			.addButton(button => button
+				.setButtonText('Refresh')
+				.onClick(() => this.updateDebugInfo(debugDiv)));
+	}
+
+	private createDangerZoneSettings(containerEl: HTMLElement): void {
+		new Setting(containerEl)
+			.setName('Danger zone')
+			.setHeading();
+
+		containerEl.createEl('p', {
+			text: 'These actions permanently modify notes in your vault. Make sure you have a backup.',
+			cls: 'setting-item-description'
+		});
+
+		new Setting(containerEl)
 			.setName('Revert current note')
-			.setDesc('Remove all SANE-generated fields from the currently active note')
+			.setDesc('Remove all SANE-generated frontmatter fields from the active note')
 			.addButton(button => button
 				.setButtonText('Revert note')
+				.setClass('mod-warning')
 				.onClick(() => {
 					void this.plugin.revertCurrentNote();
 				}));
 
 		new Setting(containerEl)
 			.setName('Revert all notes')
-			.setDesc('Remove all SANE-generated fields from every note in target folder')
+			.setDesc('Remove all SANE-generated frontmatter from every note in the target folder')
 			.addButton(button => button
 				.setButtonText('Revert all')
 				.setClass('mod-warning')
 				.onClick(() => {
 					this.plugin.revertAllNotes();
 				}));
-
-		new Setting(containerEl)
-			.setName('Support SANE')
-			.setHeading();
-
-		const supportDiv = containerEl.createDiv({ cls: 'setting-item-description' });
-		supportDiv.createEl('p').createEl('strong', { text: 'Love SANE? Here\'s how you can help:' });
-		
-		const supportList = supportDiv.createEl('ul');
-		
-		const starLi = supportList.createEl('li');
-		starLi.createEl('a', { href: 'https://github.com/Ghost04718/SANE', text: 'Star us on GitHub' });
-
-		const coffeeLi = supportList.createEl('li');
-		coffeeLi.createEl('a', { href: 'https://buymeacoffee.com/adamchen', text: 'Buy us a coffee' });
-
-		const bugsLi = supportList.createEl('li');
-		bugsLi.createEl('a', { href: 'https://github.com/Ghost04718/SANE/issues', text: 'Report bugs' });
-
-		const featuresLi = supportList.createEl('li');
-		featuresLi.createEl('a', { href: 'https://github.com/Ghost04718/SANE/discussions', text: 'Suggest features' });
-
-		supportList.createEl('li', { text: 'Help test local LLM support' });
-		supportList.createEl('li', { text: 'Contribute to development' });
-
-		new Setting(containerEl)
-			.setName('Debug info')
-			.setHeading();
-		
-		const debugDiv = containerEl.createDiv();
-		this.updateDebugInfo(debugDiv);
-		
-		new Setting(containerEl)
-			.setName('Refresh debug info')
-			.addButton(button => button
-				.setButtonText('Refresh')
-				.onClick(() => this.updateDebugInfo(debugDiv)));
 	}
 
 	private updateDebugInfo(container: HTMLElement): void {
