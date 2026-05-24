@@ -143,9 +143,7 @@ export class SANESettingTab extends PluginSettingTab {
 					}));
 		}
 
-		// Test buttons — shown for all providers
-		const hasNativeEmbedding = ['openai', 'google', 'local'].includes(provider);
-
+		// Test LLM button
 		const testDiv = containerEl.createDiv({ cls: 'setting-item' });
 		const testButtons = testDiv.createDiv({ cls: 'setting-item-control' });
 		const statusDiv = testDiv.createDiv({ cls: 'setting-item-description' });
@@ -155,14 +153,6 @@ export class SANESettingTab extends PluginSettingTab {
 			const result = await this.plugin.aiProvider.testLLM();
 			statusDiv.setText(result.ok ? '✓ LLM: Connected' : `✗ LLM: ${result.message}`);
 		});
-
-		if (hasNativeEmbedding) {
-			testButtons.createEl('button', { text: 'Test Embeddings', cls: 'mod-cta' }).addEventListener('click', async () => {
-				statusDiv.setText('Testing Embeddings...');
-				const result = await this.plugin.aiProvider.testConnection();
-				statusDiv.setText(result.ok ? '✓ Embeddings: Connected' : `✗ Embeddings: ${result.message}`);
-			});
-		}
 	}
 
 	private createModelSettings(containerEl: HTMLElement): void {
@@ -197,13 +187,63 @@ export class SANESettingTab extends PluginSettingTab {
 					this.display();
 				}));
 
-		const embeddingModelLabel = this.plugin.settings.embeddingProvider === 'local'
+		const embeddingProvider = this.plugin.settings.embeddingProvider;
+
+		if (embeddingProvider === 'openai') {
+			new Setting(containerEl)
+				.setName('Embedding OpenAI API key')
+				.setDesc('OpenAI API key for embeddings (starts with sk-)')
+				.addComponent(el => new SecretComponent(this.app, el)
+					.setValue(this.plugin.settings.embeddingOpenaiSecretName)
+					.onChange(async (value) => {
+						this.plugin.settings.embeddingOpenaiSecretName = value;
+						await this.plugin.saveSettings();
+					}));
+		}
+
+		if (embeddingProvider === 'google') {
+			new Setting(containerEl)
+				.setName('Embedding Google AI API key')
+				.setDesc('Google AI Studio API key for embeddings')
+				.addComponent(el => new SecretComponent(this.app, el)
+					.setValue(this.plugin.settings.embeddingGoogleSecretName)
+					.onChange(async (value) => {
+						this.plugin.settings.embeddingGoogleSecretName = value;
+						await this.plugin.saveSettings();
+					}));
+		}
+
+		if (embeddingProvider === 'local') {
+			new Setting(containerEl)
+				.setName('Embedding local endpoint')
+				.setDesc('OpenAI-compatible endpoint for embeddings (e.g. Ollama, vLLM, llama.cpp)')
+				.addText(text => text
+					.setPlaceholder(DEFAULT_LOCAL_ENDPOINT)
+					.setValue(this.plugin.settings.embeddingLocalEndpoint)
+					.onChange(async (value) => {
+						this.plugin.settings.embeddingLocalEndpoint = value;
+						await this.plugin.saveSettings();
+					}));
+		}
+
+		const embeddingModelLabel = embeddingProvider === 'local'
 			? '(configured by local server)'
 			: this.plugin.settings.embeddingModel;
 
 		new Setting(containerEl)
 			.setName('Embedding model')
 			.setDesc(`Model: ${embeddingModelLabel}`);
+
+		// Test button
+		const testDiv = containerEl.createDiv({ cls: 'setting-item' });
+		const testButtons = testDiv.createDiv({ cls: 'setting-item-control' });
+		const statusDiv = testDiv.createDiv({ cls: 'setting-item-description' });
+
+		testButtons.createEl('button', { text: 'Test Embeddings', cls: 'mod-cta' }).addEventListener('click', async () => {
+			statusDiv.setText('Testing embeddings...');
+			const result = await this.plugin.aiProvider.testConnection();
+			statusDiv.setText(result.ok ? '✓ Embeddings: Connected' : `✗ Embeddings: ${result.message}`);
+		});
 	}
 
 	private createProcessingSettings(containerEl: HTMLElement): void {

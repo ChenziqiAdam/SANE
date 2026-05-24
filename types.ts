@@ -7,13 +7,18 @@ export interface SANESettings {
 	embeddingProvider: 'openai' | 'google' | 'local';
 	azureEndpoint: string;
 	localEndpoint: string;
+	embeddingLocalEndpoint: string;
 
 	// Secret names (IDs of secrets in Obsidian's vault)
 	openaiSecretName: string;
 	googleSecretName: string;
 	grokSecretName: string;
 	azureSecretName: string;
-	
+
+	// Embedding-specific secret names (independent of LLM provider keys)
+	embeddingOpenaiSecretName: string;
+	embeddingGoogleSecretName: string;
+
 	// Models
 	llmModel: string;
 	embeddingModel: string;
@@ -52,11 +57,14 @@ export const DEFAULT_SETTINGS: SANESettings = {
 	embeddingProvider: 'openai',
 	azureEndpoint: '',
 	localEndpoint: DEFAULT_LOCAL_ENDPOINT,
+	embeddingLocalEndpoint: DEFAULT_LOCAL_ENDPOINT,
 
 	openaiSecretName: '',
 	googleSecretName: '',
 	grokSecretName: '',
 	azureSecretName: '',
+	embeddingOpenaiSecretName: '',
+	embeddingGoogleSecretName: '',
 
 	llmModel: DEFAULT_LLM_MODELS['openai'],
 	embeddingModel: DEFAULT_EMBEDDING_MODELS['openai'],

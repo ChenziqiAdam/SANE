@@ -88,10 +88,12 @@ export default class SANEPlugin extends Plugin {
 		const ss = this.app.secretStorage;
 		const resolve = (name: string) => (name ? ss.getSecret(name) ?? '' : '');
 		return {
-			openai: resolve(this.settings.openaiSecretName),
-			google: resolve(this.settings.googleSecretName),
-			grok:   resolve(this.settings.grokSecretName),
-			azure:  resolve(this.settings.azureSecretName),
+			openai:          resolve(this.settings.openaiSecretName),
+			google:          resolve(this.settings.googleSecretName),
+			grok:            resolve(this.settings.grokSecretName),
+			azure:           resolve(this.settings.azureSecretName),
+			embeddingOpenai: resolve(this.settings.embeddingOpenaiSecretName),
+			embeddingGoogle: resolve(this.settings.embeddingGoogleSecretName),
 		};
 	}
 

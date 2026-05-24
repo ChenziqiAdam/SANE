@@ -18,15 +18,20 @@ export class UnifiedAIProvider implements AIProvider {
 	private settings: SANESettings;
 	private openaiClient?: OpenAI;
 	private googleClient?: GoogleGenerativeAI;
+	private embeddingOpenaiClient?: OpenAI;
+	private embeddingGoogleClient?: GoogleGenerativeAI;
 	private openaiApiKey = '';
 	private googleApiKey = '';
 	private grokApiKey = '';
 	private azureApiKey = '';
+	private embeddingOpenaiKey = '';
+	private embeddingGoogleKey = '';
 
 	constructor(settings: SANESettings, keys?: Record<string, string>) {
 		this.settings = settings;
 		if (keys) this.applyKeys(keys);
 		this.initializeClients();
+		this.initializeEmbeddingClients();
 	}
 
 	private applyKeys(keys: Record<string, string>): void {
@@ -34,11 +39,14 @@ export class UnifiedAIProvider implements AIProvider {
 		this.googleApiKey = keys['google'] ?? '';
 		this.grokApiKey = keys['grok'] ?? '';
 		this.azureApiKey = keys['azure'] ?? '';
+		this.embeddingOpenaiKey = keys['embeddingOpenai'] ?? '';
+		this.embeddingGoogleKey = keys['embeddingGoogle'] ?? '';
 	}
 
 	updateKeys(keys: Record<string, string>): void {
 		this.applyKeys(keys);
 		this.initializeClients();
+		this.initializeEmbeddingClients();
 	}
 
 	private initializeClients(): void {
@@ -52,9 +60,22 @@ export class UnifiedAIProvider implements AIProvider {
 		}
 	}
 
+	private initializeEmbeddingClients(): void {
+		if (this.embeddingOpenaiKey) {
+			this.embeddingOpenaiClient = new OpenAI({
+				apiKey: this.embeddingOpenaiKey,
+				dangerouslyAllowBrowser: true
+			});
+		}
+		if (this.embeddingGoogleKey) {
+			this.embeddingGoogleClient = new GoogleGenerativeAI(this.embeddingGoogleKey);
+		}
+	}
+
 	updateSettings(settings: SANESettings): void {
 		this.settings = settings;
 		this.initializeClients();
+		this.initializeEmbeddingClients();
 	}
 
 	async generateEnhancement(content: string, relatedContent: string[]): Promise<Enhancement> {
@@ -256,28 +277,25 @@ Requirements:
 	}
 
 	private async generateOpenAIEmbedding(content: string): Promise<number[]> {
-		if (!this.openaiClient) throw new Error('OpenAI client not initialized');
-
-		const response = await this.openaiClient.embeddings.create({
+		if (!this.embeddingOpenaiClient) throw new Error('OpenAI embedding API key not configured');
+		const response = await this.embeddingOpenaiClient.embeddings.create({
 			model: this.settings.embeddingModel,
 			input: content
 		});
-
 		return response.data[0].embedding;
 	}
 
 	private async generateGoogleEmbedding(content: string): Promise<number[]> {
-		if (!this.googleClient) throw new Error('Google client not initialized');
-
-		const model = this.googleClient.getGenerativeModel({ model: this.settings.embeddingModel });
+		if (!this.embeddingGoogleClient) throw new Error('Google embedding API key not configured');
+		const model = this.embeddingGoogleClient.getGenerativeModel({ model: this.settings.embeddingModel });
 		const result = await model.embedContent(content);
-		
 		return result.embedding.values || [];
 	}
 
 	private generateLocalEmbedding(content: string): Promise<number[]> {
+		const endpoint = this.settings.embeddingLocalEndpoint || this.settings.localEndpoint;
 		return requestUrl({
-			url: `${this.settings.localEndpoint}${LOCAL_LLM_EMBEDDINGS_PATH}`,
+			url: `${endpoint}${LOCAL_LLM_EMBEDDINGS_PATH}`,
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
@@ -510,8 +528,8 @@ Requirements:
 	}
 
 	async testConnection(): Promise<{ ok: boolean; message: string }> {
-		if (!this.isConfigured()) {
-			return { ok: false, message: 'Provider not configured. Enter your API key first.' };
+		if (!this.isEmbeddingConfigured()) {
+			return { ok: false, message: 'Embedding provider not configured. Enter your API key first.' };
 		}
 		try {
 			await this.generateEmbedding('connection test');
@@ -552,6 +570,19 @@ Requirements:
 				? error.userMessage
 				: (error instanceof Error ? error.message : 'Unknown error');
 			return { ok: false, message: msg };
+		}
+	}
+
+	isEmbeddingConfigured(): boolean {
+		switch (this.settings.embeddingProvider) {
+			case 'openai':
+				return !!this.embeddingOpenaiKey;
+			case 'google':
+				return !!this.embeddingGoogleKey;
+			case 'local':
+				return !!(this.settings.embeddingLocalEndpoint || this.settings.localEndpoint);
+			default:
+				return true; // simple/fallback embedding needs no credentials
 		}
 	}
 
