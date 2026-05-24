@@ -92,23 +92,23 @@ export class OnboardingWizard extends Modal {
 		if (provider === 'openai') {
 			new Setting(contentEl).setName('OpenAI API key')
 				.addComponent(el => new SecretComponent(this.plugin.app, el)
-					.setValue('sane-openai-api-key')
-					.onChange(async v => { await this.plugin.saveApiKey('openai', v); await this.plugin.saveSettings(); }));
+					.setValue(this.plugin.settings.openaiSecretName)
+					.onChange(async v => { this.plugin.settings.openaiSecretName = v; await this.plugin.saveSettings(); }));
 		} else if (provider === 'google') {
 			new Setting(contentEl).setName('Google AI API key')
 				.addComponent(el => new SecretComponent(this.plugin.app, el)
-					.setValue('sane-google-api-key')
-					.onChange(async v => { await this.plugin.saveApiKey('google', v); await this.plugin.saveSettings(); }));
+					.setValue(this.plugin.settings.googleSecretName)
+					.onChange(async v => { this.plugin.settings.googleSecretName = v; await this.plugin.saveSettings(); }));
 		} else if (provider === 'grok') {
 			new Setting(contentEl).setName('Grok API key')
 				.addComponent(el => new SecretComponent(this.plugin.app, el)
-					.setValue('sane-grok-api-key')
-					.onChange(async v => { await this.plugin.saveApiKey('grok', v); await this.plugin.saveSettings(); }));
+					.setValue(this.plugin.settings.grokSecretName)
+					.onChange(async v => { this.plugin.settings.grokSecretName = v; await this.plugin.saveSettings(); }));
 		} else if (provider === 'azure') {
 			new Setting(contentEl).setName('Azure API key')
 				.addComponent(el => new SecretComponent(this.plugin.app, el)
-					.setValue('sane-azure-api-key')
-					.onChange(async v => { await this.plugin.saveApiKey('azure', v); await this.plugin.saveSettings(); }));
+					.setValue(this.plugin.settings.azureSecretName)
+					.onChange(async v => { this.plugin.settings.azureSecretName = v; await this.plugin.saveSettings(); }));
 			new Setting(contentEl).setName('Azure endpoint').addText(t => t
 				.setPlaceholder('https://your-resource.openai.azure.com')
 				.setValue(this.plugin.settings.azureEndpoint)

@@ -76,9 +76,9 @@ export class SANESettingTab extends PluginSettingTab {
 				.setName('OpenAI API key')
 				.setDesc('Your OpenAI API key (starts with sk-)')
 				.addComponent(el => new SecretComponent(this.app, el)
-					.setValue('sane-openai-api-key')
+					.setValue(this.plugin.settings.openaiSecretName)
 					.onChange(async (value) => {
-						await this.plugin.saveApiKey('openai', value);
+						this.plugin.settings.openaiSecretName = value;
 						await this.plugin.saveSettings();
 					}));
 		}
@@ -88,9 +88,9 @@ export class SANESettingTab extends PluginSettingTab {
 				.setName('Google AI API key')
 				.setDesc('Your Google AI Studio API key')
 				.addComponent(el => new SecretComponent(this.app, el)
-					.setValue('sane-google-api-key')
+					.setValue(this.plugin.settings.googleSecretName)
 					.onChange(async (value) => {
-						await this.plugin.saveApiKey('google', value);
+						this.plugin.settings.googleSecretName = value;
 						await this.plugin.saveSettings();
 					}));
 		}
@@ -100,9 +100,9 @@ export class SANESettingTab extends PluginSettingTab {
 				.setName('Grok API key')
 				.setDesc('Your X.AI Grok API key')
 				.addComponent(el => new SecretComponent(this.app, el)
-					.setValue('sane-grok-api-key')
+					.setValue(this.plugin.settings.grokSecretName)
 					.onChange(async (value) => {
-						await this.plugin.saveApiKey('grok', value);
+						this.plugin.settings.grokSecretName = value;
 						await this.plugin.saveSettings();
 					}));
 		}
@@ -112,9 +112,9 @@ export class SANESettingTab extends PluginSettingTab {
 				.setName('Azure API key')
 				.setDesc('Your Azure OpenAI API key')
 				.addComponent(el => new SecretComponent(this.app, el)
-					.setValue('sane-azure-api-key')
+					.setValue(this.plugin.settings.azureSecretName)
 					.onChange(async (value) => {
-						await this.plugin.saveApiKey('azure', value);
+						this.plugin.settings.azureSecretName = value;
 						await this.plugin.saveSettings();
 					}));
 

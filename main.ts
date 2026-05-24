@@ -86,22 +86,13 @@ export default class SANEPlugin extends Plugin {
 
 	async loadApiKeys(): Promise<Record<string, string>> {
 		const ss = this.app.secretStorage;
+		const resolve = (name: string) => (name ? ss.getSecret(name) ?? '' : '');
 		return {
-			openai: ss.getSecret('sane-openai-api-key') ?? '',
-			google: ss.getSecret('sane-google-api-key') ?? '',
-			grok:   ss.getSecret('sane-grok-api-key') ?? '',
-			azure:  ss.getSecret('sane-azure-api-key') ?? '',
+			openai: resolve(this.settings.openaiSecretName),
+			google: resolve(this.settings.googleSecretName),
+			grok:   resolve(this.settings.grokSecretName),
+			azure:  resolve(this.settings.azureSecretName),
 		};
-	}
-
-	async saveApiKey(provider: 'openai' | 'google' | 'grok' | 'azure', value: string): Promise<void> {
-		const idMap: Record<string, string> = {
-			openai: 'sane-openai-api-key',
-			google: 'sane-google-api-key',
-			grok:   'sane-grok-api-key',
-			azure:  'sane-azure-api-key',
-		};
-		await this.app.secretStorage.setSecret(idMap[provider], value);
 	}
 
 	async loadSettings() {
