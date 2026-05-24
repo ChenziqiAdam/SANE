@@ -1,7 +1,9 @@
 import { Notice, Plugin, TFile, addIcon, Modal, App } from 'obsidian';
-import { SANESettings, DEFAULT_SETTINGS, NoteEmbedding, RelevantNote, Enhancement, CostEntry } from './types';
+import { SANESettings, DEFAULT_SETTINGS, NoteEmbedding, RelevantNote, Enhancement, CostEntry, StoredEmbedding, PluginData, QueueStatus } from './types';
 import { SANESettingTab } from './settings-tab';
 import { UnifiedAIProvider } from './ai-service';
+import { ProcessingQueue } from './processing-queue';
+import { OnboardingWizard } from './onboarding-wizard';
 
 // Simple brain icon for the plugin
 const BRAIN_ICON = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -12,90 +14,117 @@ export default class SANEPlugin extends Plugin {
 	settings: SANESettings;
 	aiProvider: UnifiedAIProvider;
 	
-	// Simple in-memory storage for embeddings
 	private noteEmbeddings: Map<string, NoteEmbedding> = new Map();
-	private processingQueue: Set<string> = new Set();
-	private delayedProcessingTimer?: NodeJS.Timeout;
-	private scheduledProcessingTimer?: NodeJS.Timeout;
+	private queue: ProcessingQueue;
 	private costEntries: CostEntry[] = [];
 
-	async onload(): Promise<void> {
+	async onload() {
 		await this.loadSettings();
-		
+
 		console.debug('Loading SANE - Smart AI note evolution');
 
-		// Add custom icon
 		addIcon('sane-brain', BRAIN_ICON);
 
-		// Show security warnings for first-time users
-		if (!this.settings.privacyWarningShown || this.settings.requireBackupWarning) {
-			this.showSecurityWarnings();
-		}
-
-		// Initialize AI provider
 		this.aiProvider = new UnifiedAIProvider(this.settings);
 
-		// Load existing embeddings
-		this.loadEmbeddings();
+		this.queue = new ProcessingQueue(
+			(file) => this.processNote(file),
+			this.settings
+		);
 
-		// Register event handlers
+		const statusBar = this.addStatusBarItem();
+		statusBar.setText(this.aiProvider.isConfigured() ? 'SANE: idle' : 'SANE: not configured');
+
+		this.queue.onStatusChange((status: QueueStatus) => {
+			switch (status.type) {
+				case 'idle':
+					statusBar.setText(this.aiProvider?.isConfigured() ? 'SANE: idle' : 'SANE: not configured');
+					break;
+				case 'processing':
+					statusBar.setText(`SANE: processing (${status.queued + 1} queued)`);
+					break;
+				case 'error':
+					statusBar.setText('SANE: error — click for details');
+					statusBar.title = status.message;
+					break;
+			}
+		});
+
+		if (this.settings.processingTrigger === 'scheduled') {
+			this.queue.scheduleDaily();
+		}
+
+		if (!this.settings.privacyWarningShown || this.settings.requireBackupWarning) {
+			this.showOnboardingWizard();
+		}
+
 		this.registerEventHandlers();
-
-		// Add commands
 		this.addCommands();
-
-		// Add settings tab
 		this.addSettingTab(new SANESettingTab(this.app, this));
 
-		// Add ribbon icon
 		this.addRibbonIcon('sane-brain', 'SANE: Process current note', () => {
 			void this.processCurrentNote();
 		});
-
-		// Schedule processing if enabled
-		this.scheduleProcessing();
 
 		new Notice('SANE - Smart AI note evolution loaded');
 	}
 
 	onunload(): void {
 		console.debug('Unloading SANE');
-		
-		// Clear timers
-		if (this.delayedProcessingTimer) {
-			clearTimeout(this.delayedProcessingTimer);
-		}
-		if (this.scheduledProcessingTimer) {
-			clearTimeout(this.scheduledProcessingTimer);
-		}
-
-		// Save embeddings
-		this.saveEmbeddings();
+		void this.queue?.drain().then(() => {
+			void this.saveSettings();
+		});
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		const stored = await this.loadData() as PluginData | null;
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, stored?.settings ?? {});
+
+		// Migrate from localStorage if needed
+		const legacy = this.app.loadLocalStorage('sane-embeddings');
+		if (legacy) {
+			try {
+				const pairs = JSON.parse(legacy) as [string, NoteEmbedding][];
+				for (const [path, ne] of pairs) {
+					this.noteEmbeddings.set(path, ne);
+				}
+				this.app.saveLocalStorage('sane-embeddings', '');
+			} catch {
+				// Ignore corrupt legacy data
+			}
+		}
+
+		if (stored?.embeddings) {
+			for (const [path, se] of Object.entries(stored.embeddings)) {
+				this.noteEmbeddings.set(path, {
+					path,
+					content: '',
+					embedding: se.embedding,
+					lastUpdated: se.lastUpdated
+				});
+			}
+		}
 	}
 
 	async saveSettings() {
-		await this.saveData(this.settings);
-		
-		// Update AI provider with new settings
+		const embeddings: Record<string, StoredEmbedding> = {};
+		for (const [path, ne] of this.noteEmbeddings) {
+			embeddings[path] = { embedding: ne.embedding, lastUpdated: ne.lastUpdated };
+		}
+		const data: PluginData = { settings: this.settings, embeddings };
+		await this.saveData(data);
+
 		if (this.aiProvider) {
 			this.aiProvider.updateSettings(this.settings);
 		}
-
-		// Reschedule processing if needed
-		this.scheduleProcessing();
+		if (this.queue) {
+			this.queue.updateSettings(this.settings);
+		}
 	}
 
-	private showSecurityWarnings(): void {
-		const modal = new SecurityWarningModal(this.app, () => {
-			this.settings.privacyWarningShown = true;
-			this.settings.requireBackupWarning = false;
-			void this.saveSettings();
-		});
-		modal.open();
+	public showOnboardingWizard(): void {
+		const wizard = new OnboardingWizard(this.app, this);
+		wizard.open();
 	}
 
 	private registerEventHandlers(): void {
@@ -142,103 +171,26 @@ export default class SANEPlugin extends Plugin {
 	}
 
 	private async handleNoteChange(file: TFile): Promise<void> {
-		// Add to processing queue
-		this.processingQueue.add(file.path);
-
-		// Handle based on processing trigger
-		switch (this.settings.processingTrigger) {
-			case 'immediate':
-				await this.processNote(file);
-				break;
-			case 'delayed':
-				this.scheduleDelayedProcessing();
-				break;
-			case 'scheduled':
-				// Will be handled by scheduled timer
-				break;
-			case 'manual':
-				// Only process manually
-				break;
-		}
-	}
-
-	private scheduleDelayedProcessing(): void {
-		// Clear existing timer
-		if (this.delayedProcessingTimer) {
-			clearTimeout(this.delayedProcessingTimer);
-		}
-
-		// Set new timer
-		this.delayedProcessingTimer = setTimeout(() => {
-			void this.processQueuedNotes();
-		}, this.settings.delayMinutes * 60 * 1000);
-	}
-
-	private scheduleProcessing(): void {
-		// Clear existing timer
-		if (this.scheduledProcessingTimer) {
-			clearTimeout(this.scheduledProcessingTimer);
-		}
-
-		if (this.settings.processingTrigger === 'scheduled') {
-			const now = new Date();
-			const scheduled = new Date();
-			scheduled.setHours(this.settings.scheduleHour, 0, 0, 0);
-			
-			// If scheduled time has passed today, schedule for tomorrow
-			if (scheduled <= now) {
-				scheduled.setDate(scheduled.getDate() + 1);
-			}
-
-			const timeUntilScheduled = scheduled.getTime() - now.getTime();
-			
-			this.scheduledProcessingTimer = setTimeout(() => {
-				void this.processQueuedNotes();
-				this.scheduleProcessing(); // Reschedule for next day
-			}, timeUntilScheduled);
-
-			// Debug logging only in debug mode
-			if (this.settings.debugMode) {
-				console.debug(`SANE: Next scheduled processing at ${scheduled.toLocaleString()}`);
-			}
-		}
-	}
-
-	private async processQueuedNotes(): Promise<void> {
-		if (this.processingQueue.size === 0) return;
-
-		const filesToProcess = Array.from(this.processingQueue);
-		this.processingQueue.clear();
-
-		for (const filePath of filesToProcess) {
-			const file = this.app.vault.getAbstractFileByPath(filePath);
-			if (file instanceof TFile) {
-				await this.processNote(file);
-			}
-		}
+		this.queue.enqueue(file);
 	}
 
 	private async processNote(file: TFile): Promise<void> {
 		if (!this.aiProvider?.isConfigured()) {
-			new Notice('AI provider not configured. Please check settings');
+			new Notice('AI provider not configured. Please check settings.');
 			return;
 		}
 
-		// Debug logging only in debug mode
 		if (this.settings.debugMode) {
 			console.debug(`SANE: Processing note ${file.path}`);
 		}
 
 		try {
-			// Read note content
 			const content = await this.app.vault.read(file);
 			const cleanContent = this.cleanContent(content);
 
-			// Generate embedding for this note
 			const embedding = await this.aiProvider.generateEmbedding(cleanContent);
 			if (embedding.length === 0) return;
 
-			// Store embedding
 			this.noteEmbeddings.set(file.path, {
 				path: file.path,
 				content: cleanContent,
@@ -246,21 +198,21 @@ export default class SANEPlugin extends Plugin {
 				lastUpdated: Date.now()
 			});
 
-			// Find most relevant notes (excluding current note)
 			const relevantNotes = this.findRelevantNotes(file.path, this.settings.relevantNotesCount);
 
-			// Update each relevant note
+			// Update related notes, passing current note's content as context
 			for (const relevantNote of relevantNotes) {
 				await this.updateNoteWithAI(relevantNote.file, [cleanContent]);
 			}
 
-			// If this is initialization, also update the current note
-			if (this.isInitialization()) {
-				await this.updateNoteWithAI(file, relevantNotes.map(r => r.file.path));
-			}
+			// Always enhance the current note with related notes' content as context
+			const relatedContents = relevantNotes
+				.map(r => this.noteEmbeddings.get(r.file.path)?.content)
+				.filter((c): c is string => typeof c === 'string' && c.length > 0);
+
+			await this.updateNoteWithAI(file, relatedContents);
 
 		} catch (error) {
-			// Check if it's a budget error
 			if (error instanceof Error && error.message.includes('budget')) {
 				new Notice('Daily budget reached. Processing paused until tomorrow.');
 			} else {
@@ -331,7 +283,7 @@ export default class SANEPlugin extends Plugin {
 
 	private async applyEnhancement(file: TFile, enhancement: Enhancement): Promise<void> {
 		// Use processFrontMatter to atomically update frontmatter
-		await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
+		await this.app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
 			// Add/update SANE enhancements
 			if (this.settings.enableTags && enhancement.tags.length > 0) {
 				frontmatter.sane_tags = enhancement.tags;
@@ -369,11 +321,6 @@ export default class SANEPlugin extends Plugin {
 			.replace(/!\[\[.*?\]\]/g, '') // Remove image embeds
 			.replace(/```[\s\S]*?```/g, '') // Remove code blocks
 			.trim();
-	}
-
-	private isInitialization(): boolean {
-		// Simple heuristic: if we have very few embeddings, we're likely initializing
-		return this.noteEmbeddings.size < 10;
 	}
 
 	// Cost management
@@ -429,6 +376,22 @@ export default class SANEPlugin extends Plugin {
 			name: 'Show cost summary',
 			callback: () => {
 				this.showCostSummary();
+			}
+		});
+
+		this.addCommand({
+			id: 'revert-current-note',
+			name: 'Revert current note: remove all SANE fields',
+			callback: () => {
+				void this.revertCurrentNote();
+			}
+		});
+
+		this.addCommand({
+			id: 'revert-all-notes',
+			name: 'Revert all notes in target folder: remove all SANE fields',
+			callback: () => {
+				this.revertAllNotes();
 			}
 		});
 
@@ -489,7 +452,7 @@ export default class SANEPlugin extends Plugin {
 				}
 
 				// Small delay to avoid overwhelming the API
-				await new Promise(resolve => setTimeout(resolve, 100));
+				await new Promise(resolve => activeWindow.setTimeout(resolve, 100));
 
 			} catch (error) {
 				if (this.settings?.debugMode) {
@@ -527,6 +490,57 @@ export default class SANEPlugin extends Plugin {
 Provider: ${this.settings.aiProvider}`;
 
 		new Notice(message, 10000);
+	}
+
+	private async revertNote(file: TFile): Promise<void> {
+		await this.app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
+			delete fm['sane_tags'];
+			delete fm['sane_keywords'];
+			delete fm['sane_links'];
+			delete fm['sane_summary'];
+			delete fm['sane_updated'];
+			delete fm['sane_version'];
+			if ('created_at' in fm && 'modified_at' in fm) {
+				delete fm['created_at'];
+				delete fm['modified_at'];
+			}
+		});
+		this.noteEmbeddings.delete(file.path);
+	}
+
+	public async revertCurrentNote(): Promise<void> {
+		const activeFile = this.app.workspace.getActiveFile();
+		if (!activeFile) {
+			new Notice('No active file to revert');
+			return;
+		}
+		await this.revertNote(activeFile);
+		new Notice(`SANE fields removed from ${activeFile.name}`);
+	}
+
+	public revertAllNotes(): void {
+		const allFiles = this.app.vault.getMarkdownFiles();
+		const targetFiles = allFiles.filter(file => this.shouldProcessFile(file));
+		const modal = new ConfirmModal(
+			this.app,
+			'Revert all notes',
+			`This will remove all SANE fields from ${targetFiles.length} notes. Continue?`,
+			() => { void this.performRevertAllNotes(targetFiles); }
+		);
+		modal.open();
+	}
+
+	private async performRevertAllNotes(files: TFile[]): Promise<void> {
+		new Notice(`Reverting ${files.length} notes…`);
+		for (let i = 0; i < files.length; i++) {
+			await this.revertNote(files[i]);
+			if (i % 10 === 0 && i > 0) {
+				new Notice(`Reverted ${i}/${files.length} notes`, 2000);
+			}
+		}
+		this.noteEmbeddings.clear();
+		await this.saveSettings();
+		new Notice(`SANE fields removed from ${files.length} notes`);
 	}
 
 	private testAIResponse(): Promise<void> {
@@ -569,31 +583,6 @@ Summary: ${enhancement.summary}`;
 		})();
 	}
 
-	// Persistence
-	private loadEmbeddings(): void {
-		try {
-			const stored = this.app.loadLocalStorage('sane-embeddings');
-			if (stored) {
-				const data = JSON.parse(stored);
-				this.noteEmbeddings = new Map(data);
-			}
-		} catch (error) {
-			if (this.settings.debugMode) {
-				console.error('Error loading embeddings:', error);
-			}
-		}
-	}
-
-	private saveEmbeddings(): void {
-		try {
-			const data = Array.from(this.noteEmbeddings.entries());
-			this.app.saveLocalStorage('sane-embeddings', JSON.stringify(data));
-		} catch (error) {
-			if (this.settings.debugMode) {
-				console.error('Error saving embeddings:', error);
-			}
-		}
-	}
 }
 
 // Confirmation Modal to replace confirm()
@@ -635,74 +624,3 @@ class ConfirmModal extends Modal {
 	}
 }
 
-// Security Warning Modal
-class SecurityWarningModal extends Modal {
-	private onAccept: () => void;
-
-	constructor(app: App, onAccept: () => void) {
-		super(app);
-		this.onAccept = onAccept;
-	}
-
-	onOpen() {
-		const { contentEl } = this;
-		contentEl.createEl('h2', { text: '🔒 SANE security & privacy notice' });
-
-		const warning = contentEl.createDiv();
-		
-		warning.createEl('h3', { text: '⚠️ Important security information' });
-		const beforeText = warning.createEl('p');
-		beforeText.createEl('strong', { text: 'Before using SANE, please:' });
-		
-		const beforeList = warning.createEl('ul');
-		
-		const backupLi = beforeList.createEl('li');
-		backupLi.createEl('strong', { text: '🔄 Backup your vault' });
-		backupLi.appendText(' - SANE modifies your notes by adding YAML frontmatter');
-		
-		const apiLi = beforeList.createEl('li');
-		apiLi.createEl('strong', { text: '🔐 API keys' });
-		apiLi.appendText(' - Your API keys are stored locally and never shared');
-		
-		const privacyLi = beforeList.createEl('li');
-		privacyLi.createEl('strong', { text: '📤 Data privacy' });
-		privacyLi.appendText(' - Your note content is sent to your chosen AI provider for processing');
-		
-		const costsLi = beforeList.createEl('li');
-		costsLi.createEl('strong', { text: '💰 Costs' });
-		costsLi.appendText(' - AI processing incurs costs based on your provider\'s pricing');
-		
-		const scopeLi = beforeList.createEl('li');
-		scopeLi.createEl('strong', { text: '📁 Scope' });
-		scopeLi.appendText(' - Consider setting a target folder to limit which notes are processed');
-
-		warning.createEl('h3', { text: '🛡️ Privacy recommendations' });
-		const privacyList = warning.createEl('ul');
-		privacyList.createEl('li', { text: 'Review your AI provider\'s data policies' });
-		privacyList.createEl('li', { text: 'Consider using local models for sensitive content' });
-		privacyList.createEl('li', { text: 'Set daily budget limits to control costs' });
-		privacyList.createEl('li', { text: 'Test with a few notes before processing your entire vault' });
-
-		const acknowledgment = warning.createEl('p');
-		acknowledgment.createEl('strong', { text: 'By continuing, you acknowledge these risks and confirm you have backed up your vault' });
-
-		const buttonContainer = contentEl.createDiv({ cls: 'modal-button-container' });
-		
-		const cancelButton = buttonContainer.createEl('button', { text: 'Cancel' });
-		cancelButton.onclick = () => this.close();
-
-		const acceptButton = buttonContainer.createEl('button', { 
-			text: 'I understand - Continue',
-			cls: 'mod-cta'
-		});
-		acceptButton.onclick = () => {
-			this.onAccept();
-			this.close();
-		};
-	}
-
-	onClose() {
-		const { contentEl } = this;
-		contentEl.empty();
-	}
-}

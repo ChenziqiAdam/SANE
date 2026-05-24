@@ -1,7 +1,7 @@
 import { Notice, requestUrl } from 'obsidian';
 import OpenAI from 'openai';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { AIProvider, Enhancement, SANESettings } from './types';
+import { AIProvider, Enhancement, SANESettings, SANEError } from './types';
 
 export class UnifiedAIProvider implements AIProvider {
 	private settings: SANESettings;
@@ -59,22 +59,22 @@ Requirements:
 			let response: string;
 			switch (this.settings.aiProvider) {
 				case 'openai':
-					response = await this.callOpenAI(prompt);
+					response = await this.withRetry(() => this.callOpenAI(prompt), 'OpenAI');
 					break;
 				case 'google':
-					response = await this.callGoogle(prompt);
+					response = await this.withRetry(() => this.callGoogle(prompt), 'Google AI');
 					break;
 				case 'grok':
-					response = await this.callGrok(prompt);
+					response = await this.withRetry(() => this.callGrok(prompt), 'Grok');
 					break;
 				case 'azure':
-					response = await this.callAzure(prompt);
+					response = await this.withRetry(() => this.callAzure(prompt), 'Azure OpenAI');
 					break;
 				case 'local':
-					response = await this.callLocal(prompt);
+					response = await this.withRetry(() => this.callLocal(prompt), 'Local LLM');
 					break;
 				default:
-					throw new Error(`Unsupported AI provider: ${String(this.settings.aiProvider)}`);
+					throw new SANEError(`Unsupported AI provider: ${String(this.settings.aiProvider)}`);
 			}
 
 			// Parse JSON response (handle markdown code blocks)
@@ -101,17 +101,16 @@ Requirements:
 		try {
 			switch (this.settings.aiProvider) {
 				case 'openai':
-					return await this.generateOpenAIEmbedding(content);
+					return await this.withRetry(() => this.generateOpenAIEmbedding(content), 'OpenAI');
 				case 'google':
-					return await this.generateGoogleEmbedding(content);
+					return await this.withRetry(() => this.generateGoogleEmbedding(content), 'Google AI');
 				case 'local':
-					return await this.generateLocalEmbedding(content);
+					return await this.withRetry(() => this.generateLocalEmbedding(content), 'Local LLM');
 				default:
-					// For providers without embedding support, use a simple hash-based approach
 					return this.generateSimpleEmbedding(content);
 			}
 		} catch (error) {
-			const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+			const errorMessage = error instanceof SANEError ? error.userMessage : (error instanceof Error ? error.message : 'Unknown error');
 			new Notice(`Failed to generate embedding: ${errorMessage}`);
 			return [];
 		}
@@ -176,7 +175,7 @@ Requirements:
 				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify({
-				model: this.settings.llmModel || 'grok-beta',
+				model: this.settings.llmModel || 'grok-4.3',
 				messages: [{ role: 'user', content: prompt }],
 				max_tokens: this.settings.maxTokens,
 				temperature: this.settings.temperature
@@ -187,13 +186,14 @@ Requirements:
 			throw new Error(`Grok API error: ${response.status}`);
 		}
 
-		return response.json.choices[0]?.message?.content || '';
+		const grokJson = response.json as { choices: Array<{ message: { content: string } }> };
+		return grokJson.choices[0]?.message?.content || '';
 	}
 
 	private async callAzure(prompt: string): Promise<string> {
 		// Azure OpenAI Service
 		const response = await requestUrl({
-			url: `${this.settings.azureEndpoint}/openai/deployments/${this.settings.llmModel}/chat/completions?api-version=2024-02-15-preview`,
+			url: `${this.settings.azureEndpoint}/openai/deployments/${this.settings.llmModel}/chat/completions?api-version=2024-10-21`,
 			method: 'POST',
 			headers: {
 				'api-key': this.settings.azureApiKey,
@@ -210,7 +210,8 @@ Requirements:
 			throw new Error(`Azure API error: ${response.status}`);
 		}
 
-		return response.json.choices[0]?.message?.content || '';
+		const azureJson = response.json as { choices: Array<{ message: { content: string } }> };
+		return azureJson.choices[0]?.message?.content || '';
 	}
 
 	private callLocal(prompt: string): Promise<string> {
@@ -231,7 +232,8 @@ Requirements:
 				throw new Error(`Local LLM error: ${response.status}`);
 			}
 
-			return response.json.response || '';
+			const localJson = response.json as { response: string };
+			return localJson.response || '';
 		});
 	}
 
@@ -271,7 +273,8 @@ Requirements:
 			if (response.status !== 200) {
 				throw new Error(`Local embedding error: ${response.status}`);
 			}
-			return response.json.embedding || [];
+			const embeddingJson = response.json as { embedding: number[] };
+			return embeddingJson.embedding || [];
 		});
 	}
 
@@ -287,8 +290,8 @@ Requirements:
 		});
 
 		// Normalize
-		const magnitude = Math.sqrt(embedding.reduce((sum, val) => sum + val * val, 0));
-		return magnitude > 0 ? embedding.map(val => val / magnitude) : embedding;
+		const magnitude: number = Math.sqrt(embedding.reduce((sum: number, val: number) => sum + val * val, 0));
+		return magnitude > 0 ? embedding.map((val: number) => val / magnitude) : embedding;
 	}
 
 	private parseAIResponse(response: string): Enhancement {
@@ -319,14 +322,20 @@ Requirements:
 			}
 			
 			// Parse the cleaned JSON
-			const parsed = JSON.parse(cleanResponse);
-			
+			interface ParsedAIResponse {
+				links?: unknown[];
+				tags?: unknown[];
+				keywords?: unknown[];
+				summary?: unknown;
+			}
+			const parsed = JSON.parse(cleanResponse) as ParsedAIResponse;
+
 			// Format links to ensure they use Obsidian's [[note]] format
 			let formattedLinks: string[] = [];
 			if (Array.isArray(parsed.links)) {
-				formattedLinks = parsed.links
-					.filter(l => typeof l === 'string' && l.length > 0)
-					.map(link => {
+				formattedLinks = (parsed.links as unknown[])
+					.filter((l): l is string => typeof l === 'string' && l.length > 0)
+					.map((link: string) => {
 						// If the link is already in [[note]] format, keep it
 						if (link.startsWith('[[') && link.endsWith(']]')) {
 							return link;
@@ -337,11 +346,11 @@ Requirements:
 						return `[[${cleanLink}]]`;
 					});
 			}
-			
+
 			// Validate and clean the response
 			return {
-				tags: Array.isArray(parsed.tags) ? parsed.tags.filter(t => typeof t === 'string' && t.length > 0) : [],
-				keywords: Array.isArray(parsed.keywords) ? parsed.keywords.filter(k => typeof k === 'string' && k.length > 0) : [],
+				tags: Array.isArray(parsed.tags) ? (parsed.tags as unknown[]).filter((t): t is string => typeof t === 'string' && t.length > 0) : [],
+				keywords: Array.isArray(parsed.keywords) ? (parsed.keywords as unknown[]).filter((k): k is string => typeof k === 'string' && k.length > 0) : [],
 				links: formattedLinks,
 				summary: typeof parsed.summary === 'string' ? parsed.summary.trim() : ''
 			};
@@ -435,6 +444,69 @@ Requirements:
 			hash = hash & hash; // Convert to 32-bit integer
 		}
 		return hash;
+	}
+
+	private async withRetry<T>(fn: () => Promise<T>, providerName: string): Promise<T> {
+		const delays = [2000, 4000, 8000];
+		let lastError: unknown;
+
+		for (let attempt = 0; attempt <= delays.length; attempt++) {
+			try {
+				return await fn();
+			} catch (error) {
+				lastError = error;
+				const status = (error as { status?: number }).status;
+				const isRetryable = status === 429 || status === 503;
+
+				if (!isRetryable || attempt === delays.length) break;
+
+				const waitSec = delays[attempt] / 1000;
+				const msg = status === 429
+					? `${providerName} rate limit hit. Retrying in ${waitSec}s.`
+					: `${providerName} service unavailable. Retrying in ${waitSec}s.`;
+				new Notice(msg);
+				await new Promise(resolve => activeWindow.setTimeout(resolve, delays[attempt]));
+			}
+		}
+
+		const status = (lastError as { status?: number }).status;
+		if (status === 401) {
+			throw new SANEError(
+				`Invalid API key. Check your ${providerName} key in settings.`,
+				String(lastError)
+			);
+		}
+		if (status === 429) {
+			throw new SANEError(
+				`${providerName} rate limit hit. Please try again later.`,
+				String(lastError)
+			);
+		}
+		if (status === 503) {
+			throw new SANEError(
+				`${providerName} service unavailable. Check your internet connection.`,
+				String(lastError)
+			);
+		}
+		throw new SANEError(
+			`Could not reach ${providerName}. Check your internet connection.`,
+			String(lastError)
+		);
+	}
+
+	async testConnection(): Promise<{ ok: boolean; message: string }> {
+		if (!this.isConfigured()) {
+			return { ok: false, message: 'Provider not configured. Enter your API key first.' };
+		}
+		try {
+			await this.generateEmbedding('connection test');
+			return { ok: true, message: 'Connection successful!' };
+		} catch (error) {
+			const msg = error instanceof SANEError
+				? error.userMessage
+				: (error instanceof Error ? error.message : 'Unknown error');
+			return { ok: false, message: msg };
+		}
 	}
 
 	isConfigured(): boolean {

@@ -81,7 +81,7 @@ export const DEFAULT_SETTINGS: SANESettings = {
 
 export interface NoteEmbedding {
 	path: string;
-	content: string;
+	content: string; // runtime only — not persisted to disk
 	embedding: number[];
 	lastUpdated: number;
 }
@@ -109,4 +109,31 @@ export interface AIProvider {
 	generateEnhancement(content: string, relatedContent: string[]): Promise<Enhancement>;
 	generateEmbedding(content: string): Promise<number[]>;
 	estimateCost(tokens: number): number;
+}
+
+export interface StoredEmbedding {
+	embedding: number[];
+	lastUpdated: number;
+}
+
+export interface PluginData {
+	settings: Partial<SANESettings>;
+	embeddings: Record<string, StoredEmbedding>;
+}
+
+export type QueueStatus =
+	| { type: 'idle' }
+	| { type: 'processing'; file: string; queued: number }
+	| { type: 'error'; message: string };
+
+export class SANEError extends Error {
+	userMessage: string;
+	technical?: string;
+
+	constructor(userMessage: string, technical?: string) {
+		super(userMessage);
+		this.name = 'SANEError';
+		this.userMessage = userMessage;
+		this.technical = technical;
+	}
 }

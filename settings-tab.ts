@@ -197,23 +197,23 @@ export class SANESettingTab extends PluginSettingTab {
 	}
 
 	private getDefaultLLMModel(provider: string): string {
-		const defaults = {
+		const defaults: Record<string, string> = {
 			openai: 'gpt-4o-mini',
 			google: 'gemini-2.0-flash',
-			grok: 'grok-3-latest',
+			grok: 'grok-4.3',
 			azure: 'gpt-4o-mini',
 			local: 'llama3'
 		};
-		return defaults[provider] || 'gpt-4o-mini';
+		return defaults[provider] ?? 'gpt-4o-mini';
 	}
 
 	private getDefaultEmbeddingModel(provider: string): string {
-		const defaults = {
+		const defaults: Record<string, string> = {
 			openai: 'text-embedding-3-small',
 			google: 'embedding-001',
 			local: 'nomic-embed-text'
 		};
-		return defaults[provider] || 'text-embedding-3-small';
+		return defaults[provider] ?? 'text-embedding-3-small';
 	}
 
 	private createProcessingSettings(containerEl: HTMLElement): void {
@@ -294,14 +294,15 @@ export class SANESettingTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
-			.setName('Show privacy warning')
-			.setDesc('Show privacy and backup warning on next startup')
-			.addToggle(toggle => toggle
-				.setValue(this.plugin.settings.requireBackupWarning)
-				.onChange(async (value) => {
-					this.plugin.settings.requireBackupWarning = value;
-					this.plugin.settings.privacyWarningShown = !value;
-					await this.plugin.saveSettings();
+			.setName('Re-run setup wizard')
+			.setDesc('Open the setup wizard again to reconfigure provider, scope, and test your connection')
+			.addButton(button => button
+				.setButtonText('Open wizard')
+				.onClick(() => {
+					this.plugin.settings.privacyWarningShown = false;
+					this.plugin.settings.requireBackupWarning = false;
+					void this.plugin.saveSettings();
+					this.plugin.showOnboardingWizard();
 				}));
 
 		const securityDiv = containerEl.createDiv({ cls: 'setting-item-description' });
@@ -510,6 +511,25 @@ export class SANESettingTab extends PluginSettingTab {
 				}));
 
 		new Setting(containerEl)
+			.setName('Revert current note')
+			.setDesc('Remove all SANE-generated fields from the currently active note')
+			.addButton(button => button
+				.setButtonText('Revert note')
+				.onClick(() => {
+					void this.plugin.revertCurrentNote();
+				}));
+
+		new Setting(containerEl)
+			.setName('Revert all notes')
+			.setDesc('Remove all SANE-generated fields from every note in target folder')
+			.addButton(button => button
+				.setButtonText('Revert all')
+				.setClass('mod-warning')
+				.onClick(() => {
+					this.plugin.revertAllNotes();
+				}));
+
+		new Setting(containerEl)
 			.setName('Support SANE')
 			.setHeading();
 
@@ -556,7 +576,7 @@ export class SANESettingTab extends PluginSettingTab {
 		
 		const aiConfigured = this.plugin.aiProvider?.isConfigured() || false;
 		const embeddingsCount = this.plugin['noteEmbeddings']?.size || 0;
-		const queueSize = this.plugin['processingQueue']?.size || 0;
+		const queueSize = this.plugin['queue']?.size || 0;
 		
 		const infoItems = [
 			{ label: 'AI provider:', value: this.plugin.settings.aiProvider },
