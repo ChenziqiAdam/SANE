@@ -4,6 +4,7 @@ import { DEFAULT_LOCAL_ENDPOINT, DEFAULT_LLM_MODELS, DEFAULT_EMBEDDING_MODELS } 
 export interface SANESettings {
 	// AI Provider
 	aiProvider: 'openai' | 'google' | 'grok' | 'azure' | 'local';
+	embeddingProvider: 'openai' | 'google' | 'local';
 	azureEndpoint: string;
 	localEndpoint: string;
 	
@@ -42,6 +43,7 @@ export interface SANESettings {
 
 export const DEFAULT_SETTINGS: SANESettings = {
 	aiProvider: 'openai',
+	embeddingProvider: 'openai',
 	azureEndpoint: '',
 	localEndpoint: DEFAULT_LOCAL_ENDPOINT,
 

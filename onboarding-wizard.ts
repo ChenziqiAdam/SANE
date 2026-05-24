@@ -1,6 +1,6 @@
 import { App, Modal, SecretComponent, Setting } from 'obsidian';
 import type SANEPlugin from './main';
-import { DEFAULT_LOCAL_ENDPOINT } from './constants';
+import { DEFAULT_LOCAL_ENDPOINT, DEFAULT_LLM_MODELS } from './constants';
 
 type Step = 'welcome' | 'provider' | 'scope' | 'done';
 
@@ -118,6 +118,16 @@ export class OnboardingWizard extends Modal {
 				.setPlaceholder(DEFAULT_LOCAL_ENDPOINT)
 				.setValue(this.plugin.settings.localEndpoint)
 				.onChange(async v => { this.plugin.settings.localEndpoint = v; await this.plugin.saveSettings(); }));
+		}
+
+		const modelLabel = provider === 'local'
+			? '(configured by local server)'
+			: DEFAULT_LLM_MODELS[provider] ?? '';
+
+		if (modelLabel) {
+			new Setting(contentEl)
+				.setName('LLM model')
+				.setDesc(`Model: ${modelLabel}`);
 		}
 
 		const testDiv = contentEl.createDiv({ cls: 'setting-item' });

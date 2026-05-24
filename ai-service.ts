@@ -127,7 +127,7 @@ Requirements:
 
 	async generateEmbedding(content: string): Promise<number[]> {
 		try {
-			switch (this.settings.aiProvider) {
+			switch (this.settings.embeddingProvider) {
 				case 'openai':
 					return await this.withRetry(() => this.generateOpenAIEmbedding(content), 'OpenAI');
 				case 'google':

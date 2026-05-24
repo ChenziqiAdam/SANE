@@ -18,7 +18,7 @@ export const SANE_VERSION = '1.0';
 // Default models per provider
 export const DEFAULT_LLM_MODELS: Record<string, string> = {
 	openai: 'gpt-4o-mini',
-	google: 'gemini-2.0-flash',
+	google: 'gemini-2.5-flash',
 	grok: 'grok-4',
 	azure: 'gpt-4o-mini',
 	local: 'llama2',

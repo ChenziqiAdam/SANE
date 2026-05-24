@@ -9,6 +9,7 @@ import {
 	ICON_ID,
 	FM_TAGS, FM_KEYWORDS, FM_LINKS, FM_SUMMARY, FM_UPDATED, FM_VERSION,
 	FM_CREATED_AT, FM_MODIFIED_AT, SANE_VERSION,
+	DEFAULT_LLM_MODELS, DEFAULT_EMBEDDING_MODELS,
 } from './constants';
 
 // Simple brain icon for the plugin
@@ -134,6 +135,9 @@ export default class SANEPlugin extends Plugin {
 	}
 
 	async saveSettings() {
+		this.settings.llmModel = DEFAULT_LLM_MODELS[this.settings.aiProvider] ?? DEFAULT_LLM_MODELS['openai'];
+		this.settings.embeddingModel = DEFAULT_EMBEDDING_MODELS[this.settings.embeddingProvider] ?? DEFAULT_EMBEDDING_MODELS['openai'];
+
 		const embeddings: Record<string, StoredEmbedding> = {};
 		for (const [path, ne] of this.noteEmbeddings) {
 			embeddings[path] = { embedding: ne.embedding, lastUpdated: ne.lastUpdated };
@@ -592,7 +596,7 @@ Provider: ${this.settings.aiProvider}`;
 					console.debug('AI enhancement result:', enhancement);
 				}
 				
-				const message = `🧪 AI test results:
+				const message = `AI test results:
 Tags: ${enhancement.tags.join(', ')}
 Keywords: ${enhancement.keywords.join(', ')}
 Links: ${enhancement.links.join(', ')}

@@ -22,7 +22,8 @@ export class SANESettingTab extends PluginSettingTab {
 
 		// AI provider configuration
 		this.createProviderSettings(containerEl);
-		
+		this.createEmbeddingProviderSettings(containerEl);
+
 		// Processing settings
 		this.createProcessingSettings(containerEl);
 		
@@ -161,38 +162,43 @@ export class SANESettingTab extends PluginSettingTab {
 
 	private createModelSettings(containerEl: HTMLElement): void {
 		const provider = this.plugin.settings.aiProvider;
-		
+
+		const llmModelLabel = provider === 'local'
+			? '(configured by local server)'
+			: this.plugin.settings.llmModel;
+
 		new Setting(containerEl)
 			.setName('LLM model')
-			.setDesc('Model used for text generation')
-			.addText(text => text
-				.setPlaceholder(this.getDefaultLLMModel(provider))
-				.setValue(this.plugin.settings.llmModel)
-				.onChange(async (value) => {
-					this.plugin.settings.llmModel = value || this.getDefaultLLMModel(provider);
+			.setDesc(`Model: ${llmModelLabel}`);
+	}
+
+	private createEmbeddingProviderSettings(containerEl: HTMLElement): void {
+		new Setting(containerEl)
+			.setName('Embedding provider')
+			.setHeading();
+
+		new Setting(containerEl)
+			.setName('Embedding provider')
+			.setDesc('Provider used for generating note embeddings (for similarity search)')
+			.addDropdown(dropdown => dropdown
+				.addOption('openai', 'OpenAI')
+				.addOption('google', 'Google AI')
+				.addOption('local', 'Local LLM (Custom Endpoint)')
+				.setValue(this.plugin.settings.embeddingProvider)
+				.onChange(async (value: 'openai' | 'google' | 'local') => {
+					this.plugin.settings.embeddingProvider = value;
+					this.plugin.settings.embeddingModel = DEFAULT_EMBEDDING_MODELS[value] ?? DEFAULT_EMBEDDING_MODELS['openai'];
 					await this.plugin.saveSettings();
+					this.display();
 				}));
 
-		if (['openai', 'google', 'local'].includes(provider)) {
-			new Setting(containerEl)
-				.setName('Embedding model')
-				.setDesc('Model used for generating embeddings')
-				.addText(text => text
-					.setPlaceholder(this.getDefaultEmbeddingModel(provider))
-					.setValue(this.plugin.settings.embeddingModel)
-					.onChange(async (value) => {
-						this.plugin.settings.embeddingModel = value || this.getDefaultEmbeddingModel(provider);
-						await this.plugin.saveSettings();
-					}));
-		}
-	}
+		const embeddingModelLabel = this.plugin.settings.embeddingProvider === 'local'
+			? '(configured by local server)'
+			: this.plugin.settings.embeddingModel;
 
-	private getDefaultLLMModel(provider: string): string {
-		return DEFAULT_LLM_MODELS[provider] ?? DEFAULT_LLM_MODELS['openai'];
-	}
-
-	private getDefaultEmbeddingModel(provider: string): string {
-		return DEFAULT_EMBEDDING_MODELS[provider] ?? DEFAULT_EMBEDDING_MODELS['openai'];
+		new Setting(containerEl)
+			.setName('Embedding model')
+			.setDesc(`Model: ${embeddingModelLabel}`);
 	}
 
 	private createProcessingSettings(containerEl: HTMLElement): void {
@@ -285,7 +291,7 @@ export class SANESettingTab extends PluginSettingTab {
 				}));
 
 		const securityDiv = containerEl.createDiv({ cls: 'setting-item-description' });
-		securityDiv.createEl('p').createEl('strong', { text: '🛡️ Security reminders:' });
+		securityDiv.createEl('p').createEl('strong', { text: 'Security reminders:' });
 		
 		const securityList = securityDiv.createEl('ul');
 		securityList.createEl('li', { text: 'Your API keys are stored locally and never shared' });
@@ -391,7 +397,7 @@ export class SANESettingTab extends PluginSettingTab {
 		}
 
 		const costDiv = containerEl.createDiv({ cls: 'setting-item-description' });
-		costDiv.createEl('p').createEl('strong', { text: '💡 Cost estimates (per 1000 notes):' });
+		costDiv.createEl('p').createEl('strong', { text: 'Cost estimates (per 1000 notes):' });
 		
 		const costList = costDiv.createEl('ul');
 		
@@ -518,23 +524,19 @@ export class SANESettingTab extends PluginSettingTab {
 		const supportList = supportDiv.createEl('ul');
 		
 		const starLi = supportList.createEl('li');
-		starLi.appendText('⭐ ');
 		starLi.createEl('a', { href: 'https://github.com/Ghost04718/SANE', text: 'Star us on GitHub' });
-		
+
 		const coffeeLi = supportList.createEl('li');
-		coffeeLi.appendText('☕ ');
 		coffeeLi.createEl('a', { href: 'https://buymeacoffee.com/adamchen', text: 'Buy us a coffee' });
-		
+
 		const bugsLi = supportList.createEl('li');
-		bugsLi.appendText('🐛 ');
 		bugsLi.createEl('a', { href: 'https://github.com/Ghost04718/SANE/issues', text: 'Report bugs' });
-		
+
 		const featuresLi = supportList.createEl('li');
-		featuresLi.appendText('💡 ');
 		featuresLi.createEl('a', { href: 'https://github.com/Ghost04718/SANE/discussions', text: 'Suggest features' });
-		
-		supportList.createEl('li', { text: '🧪 Help test local LLM support' });
-		supportList.createEl('li', { text: '👨‍💻 Contribute to development' });
+
+		supportList.createEl('li', { text: 'Help test local LLM support' });
+		supportList.createEl('li', { text: 'Contribute to development' });
 
 		new Setting(containerEl)
 			.setName('Debug info')
