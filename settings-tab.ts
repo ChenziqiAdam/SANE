@@ -1,5 +1,6 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
 import SANEPlugin from './main';
+import { DEFAULT_LLM_MODELS, DEFAULT_EMBEDDING_MODELS, DEFAULT_LOCAL_ENDPOINT } from './constants';
 
 export class SANESettingTab extends PluginSettingTab {
 	plugin: SANEPlugin;
@@ -54,7 +55,7 @@ export class SANESettingTab extends PluginSettingTab {
 				.addOption('google', 'Google AI')
 				.addOption('grok', 'Grok (X.AI)')
 				.addOption('azure', 'Azure OpenAI')
-				.addOption('local', 'Local LLM (Ollama)')
+				.addOption('local', 'Local LLM (Custom Endpoint)')
 				.setValue(this.plugin.settings.aiProvider)
 				.onChange(async (value: 'openai' | 'google' | 'grok' | 'azure' | 'local') => {
 					this.plugin.settings.aiProvider = value;
@@ -135,36 +136,30 @@ export class SANESettingTab extends PluginSettingTab {
 		if (provider === 'local') {
 			new Setting(containerEl)
 				.setName('Local endpoint')
-				.setDesc('Your local LLM endpoint (Ollama default: http://localhost:11434)')
+				.setDesc('OpenAI-compatible endpoint (e.g. Ollama, vLLM, llama.cpp)')
 				.addText(text => text
-					.setPlaceholder('http://localhost:11434')
+					.setPlaceholder(DEFAULT_LOCAL_ENDPOINT)
 					.setValue(this.plugin.settings.localEndpoint)
 					.onChange(async (value) => {
 						this.plugin.settings.localEndpoint = value;
 						await this.plugin.saveSettings();
 					}));
 
-			const helpDiv = containerEl.createDiv({ cls: 'setting-item-description' });
-			const title = helpDiv.createEl('p');
-			title.createEl('strong', { text: 'Local LLM setup:' });
-			
-			const ol = helpDiv.createEl('ol');
-			
-			const li1 = ol.createEl('li');
-			li1.appendText('Install ');
-			li1.createEl('a', { href: 'https://ollama.ai', text: 'Ollama' });
-			
-			const li2 = ol.createEl('li');
-			li2.appendText('Run: ');
-			li2.createEl('code', { text: 'ollama pull llama2' });
-			li2.appendText(' (or your preferred model)');
-			
-			const li3 = ol.createEl('li');
-			li3.appendText('Run: ');
-			li3.createEl('code', { text: 'ollama pull nomic-embed-text' });
-			li3.appendText(' (for embeddings)');
-			
-			ol.createEl('li', { text: 'Start Ollama service' });
+			const testDiv = containerEl.createDiv({ cls: 'setting-item' });
+			const testButtons = testDiv.createDiv({ cls: 'setting-item-control' });
+			const statusDiv = testDiv.createDiv({ cls: 'setting-item-description' });
+
+			testButtons.createEl('button', { text: 'Test LLM' }).addEventListener('click', async () => {
+				statusDiv.setText('Testing LLM...');
+				const result = await this.plugin.aiProvider.testLocalLLM();
+				statusDiv.setText(result.success ? '✓ LLM: Connected' : `✗ LLM: ${result.message}`);
+			});
+
+			testButtons.createEl('button', { text: 'Test Embeddings', cls: 'mod-cta' }).addEventListener('click', async () => {
+				statusDiv.setText('Testing Embeddings...');
+				const result = await this.plugin.aiProvider.testLocalEmbedding();
+				statusDiv.setText(result.success ? '✓ Embeddings: Connected' : `✗ Embeddings: ${result.message}`);
+			});
 		}
 	}
 
@@ -197,23 +192,11 @@ export class SANESettingTab extends PluginSettingTab {
 	}
 
 	private getDefaultLLMModel(provider: string): string {
-		const defaults: Record<string, string> = {
-			openai: 'gpt-4o-mini',
-			google: 'gemini-2.0-flash',
-			grok: 'grok-4.3',
-			azure: 'gpt-4o-mini',
-			local: 'llama3'
-		};
-		return defaults[provider] ?? 'gpt-4o-mini';
+		return DEFAULT_LLM_MODELS[provider] ?? DEFAULT_LLM_MODELS['openai'];
 	}
 
 	private getDefaultEmbeddingModel(provider: string): string {
-		const defaults: Record<string, string> = {
-			openai: 'text-embedding-3-small',
-			google: 'embedding-001',
-			local: 'nomic-embed-text'
-		};
-		return defaults[provider] ?? 'text-embedding-3-small';
+		return DEFAULT_EMBEDDING_MODELS[provider] ?? DEFAULT_EMBEDDING_MODELS['openai'];
 	}
 
 	private createProcessingSettings(containerEl: HTMLElement): void {

@@ -2,6 +2,17 @@ import { Notice, requestUrl } from 'obsidian';
 import OpenAI from 'openai';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { AIProvider, Enhancement, SANESettings, SANEError } from './types';
+import {
+	GROK_API_URL,
+	AZURE_API_VERSION,
+	LOCAL_LLM_GENERATE_PATH,
+	LOCAL_LLM_EMBEDDINGS_PATH,
+	DEFAULT_LLM_MODELS,
+	DEFAULT_EMBEDDING_MODELS,
+	PROVIDER_PRICING,
+	RETRY_DELAYS_MS,
+	SIMPLE_EMBEDDING_DIM,
+} from './constants';
 
 export class UnifiedAIProvider implements AIProvider {
 	private settings: SANESettings;
@@ -134,13 +145,7 @@ Requirements:
 	}
 
 	estimateCost(tokens: number): number {
-		const pricing: Record<string, Record<string, number>> = {
-			openai: { gpt4: 0.03, embedding: 0.0001 },
-			google: { gemini: 0.0005, embedding: 0.00001 },
-			grok: { default: 0.002 },
-			azure: { default: 0.03 },
-			local: { default: 0 }
-		};
+		const pricing = PROVIDER_PRICING;
 
 		const provider = this.settings.aiProvider;
 		const providerPricing = pricing[provider];
@@ -185,14 +190,14 @@ Requirements:
 	private async callGrok(prompt: string): Promise<string> {
 		// Grok API (X.AI) - using OpenAI-compatible interface
 		const response = await requestUrl({
-			url: 'https://api.x.ai/v1/chat/completions',
+			url: GROK_API_URL,
 			method: 'POST',
 			headers: {
 				'Authorization': `Bearer ${this.grokApiKey}`,
 				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify({
-				model: this.settings.llmModel || 'grok-4.3',
+				model: this.settings.llmModel || DEFAULT_LLM_MODELS['grok'],
 				messages: [{ role: 'user', content: prompt }],
 				max_tokens: this.settings.maxTokens,
 				temperature: this.settings.temperature
@@ -210,7 +215,7 @@ Requirements:
 	private async callAzure(prompt: string): Promise<string> {
 		// Azure OpenAI Service
 		const response = await requestUrl({
-			url: `${this.settings.azureEndpoint}/openai/deployments/${this.settings.llmModel}/chat/completions?api-version=2024-10-21`,
+			url: `${this.settings.azureEndpoint}/openai/deployments/${this.settings.llmModel}/chat/completions?api-version=${AZURE_API_VERSION}`,
 			method: 'POST',
 			headers: {
 				'api-key': this.azureApiKey,
@@ -232,25 +237,21 @@ Requirements:
 	}
 
 	private callLocal(prompt: string): Promise<string> {
-		// Local LLM (Ollama format)
 		return requestUrl({
-			url: `${this.settings.localEndpoint}/api/generate`,
+			url: `${this.settings.localEndpoint}${LOCAL_LLM_GENERATE_PATH}`,
 			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
+			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
-				model: this.settings.llmModel || 'llama2',
-				prompt: prompt,
+				model: this.settings.llmModel || DEFAULT_LLM_MODELS['local'],
+				messages: [{ role: 'user', content: prompt }],
 				stream: false
 			})
 		}).then((response) => {
 			if (response.status !== 200) {
 				throw new Error(`Local LLM error: ${response.status}`);
 			}
-
-			const localJson = response.json as { response: string };
-			return localJson.response || '';
+			const json = response.json as { choices: Array<{ message: { content: string } }> };
+			return json.choices[0]?.message?.content || '';
 		});
 	}
 
@@ -275,30 +276,27 @@ Requirements:
 	}
 
 	private generateLocalEmbedding(content: string): Promise<number[]> {
-		// Local embedding using Ollama
 		return requestUrl({
-			url: `${this.settings.localEndpoint}/api/embeddings`,
+			url: `${this.settings.localEndpoint}${LOCAL_LLM_EMBEDDINGS_PATH}`,
 			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
+			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
-				model: this.settings.embeddingModel || 'nomic-embed-text',
-				prompt: content
+				model: this.settings.embeddingModel || DEFAULT_EMBEDDING_MODELS['local'],
+				input: content
 			})
 		}).then((response) => {
 			if (response.status !== 200) {
 				throw new Error(`Local embedding error: ${response.status}`);
 			}
-			const embeddingJson = response.json as { embedding: number[] };
-			return embeddingJson.embedding || [];
+			const json = response.json as { data: Array<{ embedding: number[] }> };
+			return json.data[0]?.embedding || [];
 		});
 	}
 
 	private generateSimpleEmbedding(content: string): number[] {
 		// Simple hash-based embedding for providers without embedding support
 		const words = content.toLowerCase().split(/\s+/);
-		const embedding = new Array(384).fill(0); // Standard embedding size
+		const embedding = new Array(SIMPLE_EMBEDDING_DIM).fill(0);
 		
 		words.forEach((word, index) => {
 			const hash = this.simpleHash(word);
@@ -464,7 +462,7 @@ Requirements:
 	}
 
 	private async withRetry<T>(fn: () => Promise<T>, providerName: string): Promise<T> {
-		const delays = [2000, 4000, 8000];
+		const delays = RETRY_DELAYS_MS;
 		let lastError: unknown;
 
 		for (let attempt = 0; attempt <= delays.length; attempt++) {
@@ -540,6 +538,55 @@ Requirements:
 				return !!this.settings.localEndpoint;
 			default:
 				return false;
+		}
+	}
+
+	async testLocalLLM(): Promise<{ success: boolean; message: string }> {
+		try {
+			const response = await requestUrl({
+				url: `${this.settings.localEndpoint}${LOCAL_LLM_GENERATE_PATH}`,
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					model: this.settings.llmModel || DEFAULT_LLM_MODELS['local'],
+					messages: [{ role: 'user', content: 'hi' }],
+					stream: false
+				})
+			});
+			if (response.status !== 200) {
+				return { success: false, message: `HTTP ${response.status}` };
+			}
+			const json = response.json as { choices: Array<{ message: { content: string } }> };
+			if (!json.choices?.[0]?.message?.content) {
+				return { success: false, message: 'Unexpected response format' };
+			}
+			return { success: true, message: 'Connected' };
+		} catch (e) {
+			return { success: false, message: e instanceof Error ? e.message : String(e) };
+		}
+	}
+
+	async testLocalEmbedding(): Promise<{ success: boolean; message: string }> {
+		try {
+			const response = await requestUrl({
+				url: `${this.settings.localEndpoint}${LOCAL_LLM_EMBEDDINGS_PATH}`,
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					model: this.settings.embeddingModel || DEFAULT_EMBEDDING_MODELS['local'],
+					input: 'test'
+				})
+			});
+			if (response.status !== 200) {
+				return { success: false, message: `HTTP ${response.status}` };
+			}
+			const json = response.json as { data: Array<{ embedding: number[] }> };
+			if (!Array.isArray(json.data?.[0]?.embedding)) {
+				return { success: false, message: 'Unexpected response format' };
+			}
+			return { success: true, message: 'Connected' };
+		} catch (e) {
+			return { success: false, message: e instanceof Error ? e.message : String(e) };
 		}
 	}
 }

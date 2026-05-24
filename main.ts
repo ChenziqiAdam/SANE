@@ -4,6 +4,12 @@ import { SANESettingTab } from './settings-tab';
 import { UnifiedAIProvider } from './ai-service';
 import { ProcessingQueue } from './processing-queue';
 import { OnboardingWizard } from './onboarding-wizard';
+import {
+	STORAGE_KEY_LEGACY_EMBEDDINGS,
+	ICON_ID,
+	FM_TAGS, FM_KEYWORDS, FM_LINKS, FM_SUMMARY, FM_UPDATED, FM_VERSION,
+	FM_CREATED_AT, FM_MODIFIED_AT, SANE_VERSION,
+} from './constants';
 
 // Simple brain icon for the plugin
 const BRAIN_ICON = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -24,7 +30,7 @@ export default class SANEPlugin extends Plugin {
 
 		console.debug('Loading SANE - Smart AI note evolution');
 
-		addIcon('sane-brain', BRAIN_ICON);
+		addIcon(ICON_ID, BRAIN_ICON);
 
 		this.aiProvider = new UnifiedAIProvider(this.settings, keys);
 
@@ -63,7 +69,7 @@ export default class SANEPlugin extends Plugin {
 		this.addCommands();
 		this.addSettingTab(new SANESettingTab(this.app, this));
 
-		this.addRibbonIcon('sane-brain', 'SANE: Process current note', () => {
+		this.addRibbonIcon(ICON_ID, 'SANE: Process current note', () => {
 			void this.processCurrentNote();
 		});
 
@@ -102,14 +108,14 @@ export default class SANEPlugin extends Plugin {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, stored?.settings ?? {});
 
 		// Migrate from localStorage if needed
-		const legacy = this.app.loadLocalStorage('sane-embeddings');
+		const legacy = this.app.loadLocalStorage(STORAGE_KEY_LEGACY_EMBEDDINGS);
 		if (legacy) {
 			try {
 				const pairs = JSON.parse(legacy) as [string, NoteEmbedding][];
 				for (const [path, ne] of pairs) {
 					this.noteEmbeddings.set(path, ne);
 				}
-				this.app.saveLocalStorage('sane-embeddings', '');
+				this.app.saveLocalStorage(STORAGE_KEY_LEGACY_EMBEDDINGS, '');
 			} catch {
 				// Ignore corrupt legacy data
 			}
@@ -309,29 +315,26 @@ export default class SANEPlugin extends Plugin {
 		await this.app.fileManager.processFrontMatter(file, (frontmatter: Record<string, unknown>) => {
 			// Add/update SANE enhancements
 			if (this.settings.enableTags && enhancement.tags.length > 0) {
-				frontmatter.sane_tags = enhancement.tags;
+				frontmatter[FM_TAGS] = enhancement.tags;
 			}
 			if (this.settings.enableKeywords && enhancement.keywords.length > 0) {
-				frontmatter.sane_keywords = enhancement.keywords;
+				frontmatter[FM_KEYWORDS] = enhancement.keywords;
 			}
 			if (this.settings.enableLinks && enhancement.links.length > 0) {
-				frontmatter.sane_links = enhancement.links;
+				frontmatter[FM_LINKS] = enhancement.links;
 			}
 			if (this.settings.enableSummary && enhancement.summary) {
-				frontmatter.sane_summary = enhancement.summary;
+				frontmatter[FM_SUMMARY] = enhancement.summary;
 			}
 			if (this.settings.enableCreationTimestamp) {
-				const creationDate = new Date(file.stat.ctime);
-				frontmatter.created_at = creationDate.toISOString();
+				frontmatter[FM_CREATED_AT] = new Date(file.stat.ctime).toISOString();
 			}
 			if (this.settings.enableModificationTimestamp) {
-				const modificationDate = new Date(file.stat.mtime);
-				frontmatter.modified_at = modificationDate.toISOString();
+				frontmatter[FM_MODIFIED_AT] = new Date(file.stat.mtime).toISOString();
 			}
 
-			// Add metadata
-			frontmatter.sane_updated = new Date().toISOString();
-			frontmatter.sane_version = '1.0';
+			frontmatter[FM_UPDATED] = new Date().toISOString();
+			frontmatter[FM_VERSION] = SANE_VERSION;
 		});
 	}
 
@@ -517,15 +520,15 @@ Provider: ${this.settings.aiProvider}`;
 
 	private async revertNote(file: TFile): Promise<void> {
 		await this.app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
-			delete fm['sane_tags'];
-			delete fm['sane_keywords'];
-			delete fm['sane_links'];
-			delete fm['sane_summary'];
-			delete fm['sane_updated'];
-			delete fm['sane_version'];
-			if ('created_at' in fm && 'modified_at' in fm) {
-				delete fm['created_at'];
-				delete fm['modified_at'];
+			delete fm[FM_TAGS];
+			delete fm[FM_KEYWORDS];
+			delete fm[FM_LINKS];
+			delete fm[FM_SUMMARY];
+			delete fm[FM_UPDATED];
+			delete fm[FM_VERSION];
+			if (FM_CREATED_AT in fm && FM_MODIFIED_AT in fm) {
+				delete fm[FM_CREATED_AT];
+				delete fm[FM_MODIFIED_AT];
 			}
 		});
 		this.noteEmbeddings.delete(file.path);

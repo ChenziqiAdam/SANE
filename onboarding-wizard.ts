@@ -1,5 +1,6 @@
 import { App, Modal, Setting } from 'obsidian';
 import type SANEPlugin from './main';
+import { DEFAULT_LOCAL_ENDPOINT } from './constants';
 
 type Step = 'welcome' | 'provider' | 'scope' | 'done';
 
@@ -114,7 +115,7 @@ export class OnboardingWizard extends Modal {
 				.onChange(async v => { this.plugin.settings.azureEndpoint = v; await this.plugin.saveSettings(); }));
 		} else if (provider === 'local') {
 			new Setting(contentEl).setName('Local endpoint').addText(t => t
-				.setPlaceholder('http://localhost:11434')
+				.setPlaceholder(DEFAULT_LOCAL_ENDPOINT)
 				.setValue(this.plugin.settings.localEndpoint)
 				.onChange(async v => { this.plugin.settings.localEndpoint = v; await this.plugin.saveSettings(); }));
 		}

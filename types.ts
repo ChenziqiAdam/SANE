@@ -1,4 +1,5 @@
 import { TFile } from 'obsidian';
+import { DEFAULT_LOCAL_ENDPOINT, DEFAULT_LLM_MODELS, DEFAULT_EMBEDDING_MODELS } from './constants';
 
 export interface SANESettings {
 	// AI Provider
@@ -42,10 +43,10 @@ export interface SANESettings {
 export const DEFAULT_SETTINGS: SANESettings = {
 	aiProvider: 'openai',
 	azureEndpoint: '',
-	localEndpoint: 'http://localhost:11434',
-	
-	llmModel: 'gpt-4o-mini',
-	embeddingModel: 'text-embedding-3-small',
+	localEndpoint: DEFAULT_LOCAL_ENDPOINT,
+
+	llmModel: DEFAULT_LLM_MODELS['openai'],
+	embeddingModel: DEFAULT_EMBEDDING_MODELS['openai'],
 	
 	relevantNotesCount: 3,
 	processingTrigger: 'delayed',
