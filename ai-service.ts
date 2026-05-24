@@ -7,20 +7,37 @@ export class UnifiedAIProvider implements AIProvider {
 	private settings: SANESettings;
 	private openaiClient?: OpenAI;
 	private googleClient?: GoogleGenerativeAI;
+	private openaiApiKey = '';
+	private googleApiKey = '';
+	private grokApiKey = '';
+	private azureApiKey = '';
 
-	constructor(settings: SANESettings) {
+	constructor(settings: SANESettings, keys?: Record<string, string>) {
 		this.settings = settings;
+		if (keys) this.applyKeys(keys);
+		this.initializeClients();
+	}
+
+	private applyKeys(keys: Record<string, string>): void {
+		this.openaiApiKey = keys['openai'] ?? '';
+		this.googleApiKey = keys['google'] ?? '';
+		this.grokApiKey = keys['grok'] ?? '';
+		this.azureApiKey = keys['azure'] ?? '';
+	}
+
+	updateKeys(keys: Record<string, string>): void {
+		this.applyKeys(keys);
 		this.initializeClients();
 	}
 
 	private initializeClients(): void {
-		if (this.settings.aiProvider === 'openai' && this.settings.openaiApiKey) {
-			this.openaiClient = new OpenAI({ 
-				apiKey: this.settings.openaiApiKey, 
-				dangerouslyAllowBrowser: true 
+		if (this.settings.aiProvider === 'openai' && this.openaiApiKey) {
+			this.openaiClient = new OpenAI({
+				apiKey: this.openaiApiKey,
+				dangerouslyAllowBrowser: true
 			});
-		} else if (this.settings.aiProvider === 'google' && this.settings.googleApiKey) {
-			this.googleClient = new GoogleGenerativeAI(this.settings.googleApiKey);
+		} else if (this.settings.aiProvider === 'google' && this.googleApiKey) {
+			this.googleClient = new GoogleGenerativeAI(this.googleApiKey);
 		}
 	}
 
@@ -171,7 +188,7 @@ Requirements:
 			url: 'https://api.x.ai/v1/chat/completions',
 			method: 'POST',
 			headers: {
-				'Authorization': `Bearer ${this.settings.grokApiKey}`,
+				'Authorization': `Bearer ${this.grokApiKey}`,
 				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify({
@@ -196,7 +213,7 @@ Requirements:
 			url: `${this.settings.azureEndpoint}/openai/deployments/${this.settings.llmModel}/chat/completions?api-version=2024-10-21`,
 			method: 'POST',
 			headers: {
-				'api-key': this.settings.azureApiKey,
+				'api-key': this.azureApiKey,
 				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify({
@@ -512,13 +529,13 @@ Requirements:
 	isConfigured(): boolean {
 		switch (this.settings.aiProvider) {
 			case 'openai':
-				return !!this.settings.openaiApiKey;
+				return !!this.openaiApiKey;
 			case 'google':
-				return !!this.settings.googleApiKey;
+				return !!this.googleApiKey;
 			case 'grok':
-				return !!this.settings.grokApiKey;
+				return !!this.grokApiKey;
 			case 'azure':
-				return !!this.settings.azureApiKey && !!this.settings.azureEndpoint;
+				return !!this.azureApiKey && !!this.settings.azureEndpoint;
 			case 'local':
 				return !!this.settings.localEndpoint;
 			default:

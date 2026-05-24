@@ -3,10 +3,6 @@ import { TFile } from 'obsidian';
 export interface SANESettings {
 	// AI Provider
 	aiProvider: 'openai' | 'google' | 'grok' | 'azure' | 'local';
-	openaiApiKey: string;
-	googleApiKey: string;
-	grokApiKey: string;
-	azureApiKey: string;
 	azureEndpoint: string;
 	localEndpoint: string;
 	
@@ -45,10 +41,6 @@ export interface SANESettings {
 
 export const DEFAULT_SETTINGS: SANESettings = {
 	aiProvider: 'openai',
-	openaiApiKey: '',
-	googleApiKey: '',
-	grokApiKey: '',
-	azureApiKey: '',
 	azureEndpoint: '',
 	localEndpoint: 'http://localhost:11434',
 	

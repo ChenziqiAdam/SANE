@@ -20,12 +20,13 @@ export default class SANEPlugin extends Plugin {
 
 	async onload() {
 		await this.loadSettings();
+		const keys = await this.loadApiKeys();
 
 		console.debug('Loading SANE - Smart AI note evolution');
 
 		addIcon('sane-brain', BRAIN_ICON);
 
-		this.aiProvider = new UnifiedAIProvider(this.settings);
+		this.aiProvider = new UnifiedAIProvider(this.settings, keys);
 
 		this.queue = new ProcessingQueue(
 			(file) => this.processNote(file),
@@ -76,6 +77,26 @@ export default class SANEPlugin extends Plugin {
 		});
 	}
 
+	async loadApiKeys(): Promise<Record<string, string>> {
+		const ss = this.app.secretStorage;
+		return {
+			openai: ss.getSecret('sane-openai-api-key') ?? '',
+			google: ss.getSecret('sane-google-api-key') ?? '',
+			grok:   ss.getSecret('sane-grok-api-key') ?? '',
+			azure:  ss.getSecret('sane-azure-api-key') ?? '',
+		};
+	}
+
+	async saveApiKey(provider: 'openai' | 'google' | 'grok' | 'azure', value: string): Promise<void> {
+		const idMap: Record<string, string> = {
+			openai: 'sane-openai-api-key',
+			google: 'sane-google-api-key',
+			grok:   'sane-grok-api-key',
+			azure:  'sane-azure-api-key',
+		};
+		this.app.secretStorage.setSecret(idMap[provider], value);
+	}
+
 	async loadSettings() {
 		const stored = await this.loadData() as PluginData | null;
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, stored?.settings ?? {});
@@ -116,6 +137,8 @@ export default class SANEPlugin extends Plugin {
 
 		if (this.aiProvider) {
 			this.aiProvider.updateSettings(this.settings);
+			const keys = await this.loadApiKeys();
+			this.aiProvider.updateKeys(keys);
 		}
 		if (this.queue) {
 			this.queue.updateSettings(this.settings);
