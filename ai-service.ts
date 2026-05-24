@@ -524,6 +524,37 @@ Requirements:
 		}
 	}
 
+	async testLLM(): Promise<{ ok: boolean; message: string }> {
+		if (!this.isConfigured()) {
+			return { ok: false, message: 'Provider not configured. Enter your API key first.' };
+		}
+		try {
+			switch (this.settings.aiProvider) {
+				case 'openai':
+					await this.callOpenAI('hi');
+					break;
+				case 'google':
+					await this.callGoogle('hi');
+					break;
+				case 'grok':
+					await this.callGrok('hi');
+					break;
+				case 'azure':
+					await this.callAzure('hi');
+					break;
+				case 'local':
+					await this.callLocal('hi');
+					break;
+			}
+			return { ok: true, message: 'LLM connected' };
+		} catch (error) {
+			const msg = error instanceof SANEError
+				? error.userMessage
+				: (error instanceof Error ? error.message : 'Unknown error');
+			return { ok: false, message: msg };
+		}
+	}
+
 	isConfigured(): boolean {
 		switch (this.settings.aiProvider) {
 			case 'openai':
@@ -538,55 +569,6 @@ Requirements:
 				return !!this.settings.localEndpoint;
 			default:
 				return false;
-		}
-	}
-
-	async testLocalLLM(): Promise<{ success: boolean; message: string }> {
-		try {
-			const response = await requestUrl({
-				url: `${this.settings.localEndpoint}${LOCAL_LLM_GENERATE_PATH}`,
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					model: this.settings.llmModel || DEFAULT_LLM_MODELS['local'],
-					messages: [{ role: 'user', content: 'hi' }],
-					stream: false
-				})
-			});
-			if (response.status !== 200) {
-				return { success: false, message: `HTTP ${response.status}` };
-			}
-			const json = response.json as { choices: Array<{ message: { content: string } }> };
-			if (!json.choices?.[0]?.message?.content) {
-				return { success: false, message: 'Unexpected response format' };
-			}
-			return { success: true, message: 'Connected' };
-		} catch (e) {
-			return { success: false, message: e instanceof Error ? e.message : String(e) };
-		}
-	}
-
-	async testLocalEmbedding(): Promise<{ success: boolean; message: string }> {
-		try {
-			const response = await requestUrl({
-				url: `${this.settings.localEndpoint}${LOCAL_LLM_EMBEDDINGS_PATH}`,
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					model: this.settings.embeddingModel || DEFAULT_EMBEDDING_MODELS['local'],
-					input: 'test'
-				})
-			});
-			if (response.status !== 200) {
-				return { success: false, message: `HTTP ${response.status}` };
-			}
-			const json = response.json as { data: Array<{ embedding: number[] }> };
-			if (!Array.isArray(json.data?.[0]?.embedding)) {
-				return { success: false, message: 'Unexpected response format' };
-			}
-			return { success: true, message: 'Connected' };
-		} catch (e) {
-			return { success: false, message: e instanceof Error ? e.message : String(e) };
 		}
 	}
 }

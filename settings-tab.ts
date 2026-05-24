@@ -141,21 +141,26 @@ export class SANESettingTab extends PluginSettingTab {
 						this.plugin.settings.localEndpoint = value;
 						await this.plugin.saveSettings();
 					}));
+		}
 
-			const testDiv = containerEl.createDiv({ cls: 'setting-item' });
-			const testButtons = testDiv.createDiv({ cls: 'setting-item-control' });
-			const statusDiv = testDiv.createDiv({ cls: 'setting-item-description' });
+		// Test buttons — shown for all providers
+		const hasNativeEmbedding = ['openai', 'google', 'local'].includes(provider);
 
-			testButtons.createEl('button', { text: 'Test LLM' }).addEventListener('click', async () => {
-				statusDiv.setText('Testing LLM...');
-				const result = await this.plugin.aiProvider.testLocalLLM();
-				statusDiv.setText(result.success ? '✓ LLM: Connected' : `✗ LLM: ${result.message}`);
-			});
+		const testDiv = containerEl.createDiv({ cls: 'setting-item' });
+		const testButtons = testDiv.createDiv({ cls: 'setting-item-control' });
+		const statusDiv = testDiv.createDiv({ cls: 'setting-item-description' });
 
+		testButtons.createEl('button', { text: 'Test LLM' }).addEventListener('click', async () => {
+			statusDiv.setText('Testing LLM...');
+			const result = await this.plugin.aiProvider.testLLM();
+			statusDiv.setText(result.ok ? '✓ LLM: Connected' : `✗ LLM: ${result.message}`);
+		});
+
+		if (hasNativeEmbedding) {
 			testButtons.createEl('button', { text: 'Test Embeddings', cls: 'mod-cta' }).addEventListener('click', async () => {
 				statusDiv.setText('Testing Embeddings...');
-				const result = await this.plugin.aiProvider.testLocalEmbedding();
-				statusDiv.setText(result.success ? '✓ Embeddings: Connected' : `✗ Embeddings: ${result.message}`);
+				const result = await this.plugin.aiProvider.testConnection();
+				statusDiv.setText(result.ok ? '✓ Embeddings: Connected' : `✗ Embeddings: ${result.message}`);
 			});
 		}
 	}

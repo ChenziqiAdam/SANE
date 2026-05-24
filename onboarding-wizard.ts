@@ -130,19 +130,34 @@ export class OnboardingWizard extends Modal {
 				.setDesc(`Model: ${modelLabel}`);
 		}
 
-		const testDiv = contentEl.createDiv({ cls: 'setting-item' });
-		const testBtn = testDiv.createEl('button', { text: 'Test connection' });
-		const resultSpan = testDiv.createEl('span', { cls: 'setting-item-description' });
-		resultSpan.style.marginLeft = '12px';
+		const hasNativeEmbedding = ['openai', 'google', 'local'].includes(provider);
 
-		testBtn.addEventListener('click', async () => {
-			testBtn.disabled = true;
-			resultSpan.setText('Testing…');
-			const result = await this.plugin.aiProvider.testConnection();
-			resultSpan.setText(result.ok ? '✓ ' + result.message : '✗ ' + result.message);
-			resultSpan.style.color = result.ok ? 'var(--color-green)' : 'var(--color-red)';
-			testBtn.disabled = false;
+		const testDiv = contentEl.createDiv({ cls: 'setting-item' });
+		const testButtons = testDiv.createDiv({ cls: 'setting-item-control' });
+		const statusSpan = testDiv.createEl('span', { cls: 'setting-item-description' });
+		statusSpan.style.marginLeft = '12px';
+
+		const testLLMBtn = testButtons.createEl('button', { text: 'Test LLM' });
+		testLLMBtn.addEventListener('click', async () => {
+			testLLMBtn.disabled = true;
+			statusSpan.setText('Testing LLM...');
+			const result = await this.plugin.aiProvider.testLLM();
+			statusSpan.setText(result.ok ? '✓ LLM: Connected' : `✗ LLM: ${result.message}`);
+			statusSpan.style.color = result.ok ? 'var(--color-green)' : 'var(--color-red)';
+			testLLMBtn.disabled = false;
 		});
+
+		if (hasNativeEmbedding) {
+			const testEmbBtn = testButtons.createEl('button', { text: 'Test Embeddings', cls: 'mod-cta' });
+			testEmbBtn.addEventListener('click', async () => {
+				testEmbBtn.disabled = true;
+				statusSpan.setText('Testing Embeddings...');
+				const result = await this.plugin.aiProvider.testConnection();
+				statusSpan.setText(result.ok ? '✓ Embeddings: Connected' : `✗ Embeddings: ${result.message}`);
+				statusSpan.style.color = result.ok ? 'var(--color-green)' : 'var(--color-red)';
+				testEmbBtn.disabled = false;
+			});
+		}
 
 		const btnRow = contentEl.createDiv({ cls: 'modal-button-container' });
 		btnRow.createEl('button', { text: '← Back' }).addEventListener('click', () => {
