@@ -90,25 +90,33 @@ export class OnboardingWizard extends Modal {
 		const provider = this.plugin.settings.aiProvider;
 
 		if (provider === 'openai') {
-			new Setting(contentEl).setName('OpenAI API key').addText(t => t
-				.setPlaceholder('sk-...')
-				.setValue(this.plugin.app.secretStorage.getSecret('sane-openai-api-key') ?? '')
-				.onChange(async v => { await this.plugin.saveApiKey('openai', v); await this.plugin.saveSettings(); }));
+			new Setting(contentEl).setName('OpenAI API key').addText(t => {
+				t.setPlaceholder('sk-...')
+					.setValue(this.plugin.app.secretStorage.getSecret('sane-openai-api-key') ?? '')
+					.onChange(async v => { await this.plugin.saveApiKey('openai', v); await this.plugin.saveSettings(); });
+				t.inputEl.type = 'password';
+			});
 		} else if (provider === 'google') {
-			new Setting(contentEl).setName('Google AI API key').addText(t => t
-				.setPlaceholder('AIza...')
-				.setValue(this.plugin.app.secretStorage.getSecret('sane-google-api-key') ?? '')
-				.onChange(async v => { await this.plugin.saveApiKey('google', v); await this.plugin.saveSettings(); }));
+			new Setting(contentEl).setName('Google AI API key').addText(t => {
+				t.setPlaceholder('AIza...')
+					.setValue(this.plugin.app.secretStorage.getSecret('sane-google-api-key') ?? '')
+					.onChange(async v => { await this.plugin.saveApiKey('google', v); await this.plugin.saveSettings(); });
+				t.inputEl.type = 'password';
+			});
 		} else if (provider === 'grok') {
-			new Setting(contentEl).setName('Grok API key').addText(t => t
-				.setPlaceholder('xai-...')
-				.setValue(this.plugin.app.secretStorage.getSecret('sane-grok-api-key') ?? '')
-				.onChange(async v => { await this.plugin.saveApiKey('grok', v); await this.plugin.saveSettings(); }));
+			new Setting(contentEl).setName('Grok API key').addText(t => {
+				t.setPlaceholder('xai-...')
+					.setValue(this.plugin.app.secretStorage.getSecret('sane-grok-api-key') ?? '')
+					.onChange(async v => { await this.plugin.saveApiKey('grok', v); await this.plugin.saveSettings(); });
+				t.inputEl.type = 'password';
+			});
 		} else if (provider === 'azure') {
-			new Setting(contentEl).setName('Azure API key').addText(t => t
-				.setPlaceholder('Azure API key')
-				.setValue(this.plugin.app.secretStorage.getSecret('sane-azure-api-key') ?? '')
-				.onChange(async v => { await this.plugin.saveApiKey('azure', v); await this.plugin.saveSettings(); }));
+			new Setting(contentEl).setName('Azure API key').addText(t => {
+				t.setPlaceholder('Azure API key')
+					.setValue(this.plugin.app.secretStorage.getSecret('sane-azure-api-key') ?? '')
+					.onChange(async v => { await this.plugin.saveApiKey('azure', v); await this.plugin.saveSettings(); });
+				t.inputEl.type = 'password';
+			});
 			new Setting(contentEl).setName('Azure endpoint').addText(t => t
 				.setPlaceholder('https://your-resource.openai.azure.com')
 				.setValue(this.plugin.settings.azureEndpoint)
