@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting } from 'obsidian';
+import { App, PluginSettingTab, SecretComponent, Setting } from 'obsidian';
 import SANEPlugin from './main';
 import { DEFAULT_LLM_MODELS, DEFAULT_EMBEDDING_MODELS, DEFAULT_LOCAL_ENDPOINT } from './constants';
 
@@ -74,60 +74,48 @@ export class SANESettingTab extends PluginSettingTab {
 			new Setting(containerEl)
 				.setName('OpenAI API key')
 				.setDesc('Your OpenAI API key (starts with sk-)')
-				.addText(text => {
-					text.setPlaceholder('sk-...')
-						.setValue(this.plugin.app.secretStorage.getSecret('sane-openai-api-key') ?? '')
-						.onChange(async (value) => {
-							await this.plugin.saveApiKey('openai', value);
-							await this.plugin.saveSettings();
-						});
-					text.inputEl.type = 'password';
-				});
+				.addComponent(el => new SecretComponent(this.app, el)
+					.setValue(this.plugin.app.secretStorage.getSecret('sane-openai-api-key') ?? '')
+					.onChange(async (value) => {
+						await this.plugin.saveApiKey('openai', value);
+						await this.plugin.saveSettings();
+					}));
 		}
 
 		if (provider === 'google') {
 			new Setting(containerEl)
 				.setName('Google AI API key')
 				.setDesc('Your Google AI Studio API key')
-				.addText(text => {
-					text.setPlaceholder('AIza...')
-						.setValue(this.plugin.app.secretStorage.getSecret('sane-google-api-key') ?? '')
-						.onChange(async (value) => {
-							await this.plugin.saveApiKey('google', value);
-							await this.plugin.saveSettings();
-						});
-					text.inputEl.type = 'password';
-				});
+				.addComponent(el => new SecretComponent(this.app, el)
+					.setValue(this.plugin.app.secretStorage.getSecret('sane-google-api-key') ?? '')
+					.onChange(async (value) => {
+						await this.plugin.saveApiKey('google', value);
+						await this.plugin.saveSettings();
+					}));
 		}
 
 		if (provider === 'grok') {
 			new Setting(containerEl)
 				.setName('Grok API key')
 				.setDesc('Your X.AI Grok API key')
-				.addText(text => {
-					text.setPlaceholder('xai-...')
-						.setValue(this.plugin.app.secretStorage.getSecret('sane-grok-api-key') ?? '')
-						.onChange(async (value) => {
-							await this.plugin.saveApiKey('grok', value);
-							await this.plugin.saveSettings();
-						});
-					text.inputEl.type = 'password';
-				});
+				.addComponent(el => new SecretComponent(this.app, el)
+					.setValue(this.plugin.app.secretStorage.getSecret('sane-grok-api-key') ?? '')
+					.onChange(async (value) => {
+						await this.plugin.saveApiKey('grok', value);
+						await this.plugin.saveSettings();
+					}));
 		}
 
 		if (provider === 'azure') {
 			new Setting(containerEl)
 				.setName('Azure API key')
 				.setDesc('Your Azure OpenAI API key')
-				.addText(text => {
-					text.setPlaceholder('Azure API key')
-						.setValue(this.plugin.app.secretStorage.getSecret('sane-azure-api-key') ?? '')
-						.onChange(async (value) => {
-							await this.plugin.saveApiKey('azure', value);
-							await this.plugin.saveSettings();
-						});
-					text.inputEl.type = 'password';
-				});
+				.addComponent(el => new SecretComponent(this.app, el)
+					.setValue(this.plugin.app.secretStorage.getSecret('sane-azure-api-key') ?? '')
+					.onChange(async (value) => {
+						await this.plugin.saveApiKey('azure', value);
+						await this.plugin.saveSettings();
+					}));
 
 			new Setting(containerEl)
 				.setName('Azure endpoint')
