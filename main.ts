@@ -101,7 +101,7 @@ export default class SANEPlugin extends Plugin {
 			grok:   'sane-grok-api-key',
 			azure:  'sane-azure-api-key',
 		};
-		this.app.secretStorage.setSecret(idMap[provider], value);
+		await this.app.secretStorage.setSecret(idMap[provider], value);
 	}
 
 	async loadSettings() {

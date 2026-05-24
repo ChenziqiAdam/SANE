@@ -92,22 +92,22 @@ export class OnboardingWizard extends Modal {
 		if (provider === 'openai') {
 			new Setting(contentEl).setName('OpenAI API key')
 				.addComponent(el => new SecretComponent(this.plugin.app, el)
-					.setValue(this.plugin.app.secretStorage.getSecret('sane-openai-api-key') ?? '')
+					.setValue('sane-openai-api-key')
 					.onChange(async v => { await this.plugin.saveApiKey('openai', v); await this.plugin.saveSettings(); }));
 		} else if (provider === 'google') {
 			new Setting(contentEl).setName('Google AI API key')
 				.addComponent(el => new SecretComponent(this.plugin.app, el)
-					.setValue(this.plugin.app.secretStorage.getSecret('sane-google-api-key') ?? '')
+					.setValue('sane-google-api-key')
 					.onChange(async v => { await this.plugin.saveApiKey('google', v); await this.plugin.saveSettings(); }));
 		} else if (provider === 'grok') {
 			new Setting(contentEl).setName('Grok API key')
 				.addComponent(el => new SecretComponent(this.plugin.app, el)
-					.setValue(this.plugin.app.secretStorage.getSecret('sane-grok-api-key') ?? '')
+					.setValue('sane-grok-api-key')
 					.onChange(async v => { await this.plugin.saveApiKey('grok', v); await this.plugin.saveSettings(); }));
 		} else if (provider === 'azure') {
 			new Setting(contentEl).setName('Azure API key')
 				.addComponent(el => new SecretComponent(this.plugin.app, el)
-					.setValue(this.plugin.app.secretStorage.getSecret('sane-azure-api-key') ?? '')
+					.setValue('sane-azure-api-key')
 					.onChange(async v => { await this.plugin.saveApiKey('azure', v); await this.plugin.saveSettings(); }));
 			new Setting(contentEl).setName('Azure endpoint').addText(t => t
 				.setPlaceholder('https://your-resource.openai.azure.com')
