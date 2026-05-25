@@ -17,6 +17,9 @@ export class OnboardingWizard extends Modal {
 	}
 
 	onClose(): void {
+		this.plugin.settings.privacyWarningShown = true;
+		this.plugin.settings.requireBackupWarning = false;
+		void this.plugin.saveSettings();
 		this.contentEl.empty();
 	}
 
