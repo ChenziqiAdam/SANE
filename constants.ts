@@ -17,11 +17,11 @@ export const SANE_VERSION = '1.0';
 
 // Default models per provider
 export const DEFAULT_LLM_MODELS: Record<string, string> = {
-	openai: 'gpt-4o-mini',
+	openai: 'gpt-5-nano',
 	google: 'gemini-2.5-flash',
-	grok: 'grok-4',
+	grok: 'grok-4.3',
 	azure: 'gpt-4o-mini',
-	local: 'llama2',
+	local: 'llama3-7b',
 };
 
 export const DEFAULT_EMBEDDING_MODELS: Record<string, string> = {

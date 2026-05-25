@@ -1,7 +1,7 @@
 {
 	"id": "sane-smart-ai-note-evolution",
 	"name": "SANE - Smart AI Note Evolution",
-	"version": "1.1.1",
+	"version": "1.1.0",
 	"minAppVersion": "1.8.7",
 	"description": "Evolve your notes intelligently with AI. When you add/edit notes, SANE finds the 3 most relevant notes and enhances them with smart tags, keywords, links, and summaries.",
 	"author": "Adam Chen",
