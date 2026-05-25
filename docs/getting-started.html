@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Getting Started — SANE Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* STEP BLOCKS */
+  .steps { display: flex; flex-direction: column; gap: 0; margin-top: 32px; }
+  .step-block { display: grid; grid-template-columns: 52px 1fr; gap: 0 24px; position: relative; }
+  .step-block:not(:last-child)::before {
+    content: ''; position: absolute; left: 25px; top: 52px; bottom: -1px;
+    width: 1px; background: var(--line);
+  }
+  .step-num-badge {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--accent-faint); border: 1.5px solid var(--accent-soft);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace; font-size: 14px;
+    color: var(--accent); font-weight: 500; flex-shrink: 0; position: relative; z-index: 1;
+  }
+  .step-body { padding: 12px 0 48px; }
+  .step-body h3 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 21px; letter-spacing: -0.01em; margin-bottom: 10px; }
+  .step-body p { font-size: 16px; color: var(--ink-soft); line-height: 1.6; margin-bottom: 14px; }
+  .step-body p:last-child { margin-bottom: 0; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <a href="../index.html" class="logo">
+      <span class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="12" cy="12" r="2.5" fill="currentColor"/>
+          <circle cx="5" cy="8" r="1.5" fill="currentColor"/>
+          <circle cx="19" cy="8" r="1.5" fill="currentColor"/>
+          <circle cx="5" cy="16" r="1.5" fill="currentColor"/>
+          <circle cx="19" cy="16" r="1.5" fill="currentColor"/>
+        </svg>
+      </span>
+      SANE
+    </a>
+    <div class="nav-links">
+      <a href="../index.html#features">Features</a>
+      <a href="../index.html#how">How it works</a>
+      <a href="../index.html#example">Example</a>
+      <a href="index.html" class="active">Docs</a>
+      <a href="https://github.com/Ghost04718/SANE" target="_blank" rel="noopener">GitHub</a>
+    </div>
+    <a href="obsidian://show-plugin?id=sane" class="nav-cta">Get Plugin</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-label">Docs</div>
+      <div class="sidebar-links">
+        <a href="index.html">Overview</a>
+        <a href="getting-started.html" class="active">Getting Started</a>
+        <a href="configuration.html">Configuration</a>
+        <a href="providers.html">AI Providers</a>
+        <a href="commands.html">Commands &amp; Triggers</a>
+        <a href="output.html">Output &amp; Frontmatter</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">On this page</div>
+        <div class="sidebar-links">
+          <a href="#install">1. Install</a>
+          <a href="#configure">2. Configure</a>
+          <a href="#scope">3. Set scope</a>
+          <a href="#initialize">4. Initialize</a>
+          <a href="#write">5. Write</a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CONTENT -->
+    <article class="content">
+      <h1>Getting <em>Started</em></h1>
+      <p class="lede">Install SANE, connect an AI provider, and have your first note processed in under five minutes.</p>
+
+      <div class="steps">
+        <!-- STEP 1 -->
+        <div class="step-block" id="install">
+          <div class="step-num-badge">01</div>
+          <div class="step-body">
+            <h3>Install the plugin</h3>
+            <p>Open Obsidian and go to <strong>Settings → Community plugins → Browse</strong>. Search for <strong>SANE</strong> and click Install, then Enable.</p>
+            <p>Alternatively, download the latest release from GitHub and copy <code>main.js</code>, <code>manifest.json</code>, and <code>styles.css</code> into <code>.obsidian/plugins/sane/</code>.</p>
+            <div class="callout">
+              <strong>First run:</strong> SANE will show a privacy notice — it reminds you that note content is sent to your chosen AI provider. Acknowledge it to continue.
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 2 -->
+        <div class="step-block" id="configure">
+          <div class="step-num-badge">02</div>
+          <div class="step-body">
+            <h3>Configure an AI provider</h3>
+            <p>Go to <strong>Settings → SANE</strong>. Under <em>AI Provider</em>, choose your preferred service. The default is OpenAI.</p>
+            <p>Enter your API key in the corresponding secret field. SANE stores keys in Obsidian's secure secret storage — they are never written to disk in plain text.</p>
+            <div class="callout">
+              <strong>Recommended for beginners:</strong> OpenAI with <code>gpt-4o-mini</code> is cost-effective and widely supported. See <a href="providers.html" style="color:var(--accent);">AI Providers</a> for all options including free local models.
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3 -->
+        <div class="step-block" id="scope">
+          <div class="step-num-badge">03</div>
+          <div class="step-body">
+            <h3>Set a target folder <em>(recommended)</em></h3>
+            <p>Under <em>Security &amp; Scope</em>, set a <strong>Target Folder</strong> to limit which notes SANE processes. For example, <code>Notes</code> or <code>Projects/Active</code>.</p>
+            <p>Leaving this blank tells SANE to process every note in your vault. This is fine for small vaults, but limiting scope saves cost and keeps processing fast.</p>
+            <div class="callout callout-warn">
+              <strong>Large vaults:</strong> Initializing thousands of notes can hit your daily budget quickly. Start with a small folder.
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 4 -->
+        <div class="step-block" id="initialize">
+          <div class="step-num-badge">04</div>
+          <div class="step-body">
+            <h3>Initialize your existing notes</h3>
+            <p>Open the Obsidian command palette (<kbd>Cmd/Ctrl + P</kbd>) and run <strong>SANE: Initialize all notes</strong>. This processes every note in your target folder, building the semantic index SANE uses to find related notes.</p>
+            <p>A status bar indicator will show progress. You can continue using Obsidian while SANE works in the background.</p>
+            <div class="code-card">
+              <div class="code-header">
+                <div class="code-dots"><span></span><span></span><span></span></div>
+                <span>Status bar</span>
+              </div>
+              <span style="color:#9bbf95;">SANE</span> · <span style="color:#e8d089;">processing 3 / 47</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 5 -->
+        <div class="step-block" id="write">
+          <div class="step-num-badge">05</div>
+          <div class="step-body">
+            <h3>Write — SANE handles the rest</h3>
+            <p>Create or edit any note in your target folder. Depending on your <a href="configuration.html#trigger" style="color:var(--accent);">trigger mode</a>, SANE will process it immediately, after a delay, or on a schedule.</p>
+            <p>When processing completes, the note's frontmatter will contain new <code>sane_*</code> fields. Your original prose is never touched.</p>
+            <div class="code-card">
+              <div class="code-header">
+                <div class="code-dots"><span></span><span></span><span></span></div>
+                <span>my-note.md — after SANE</span>
+              </div>
+<pre style="margin:0; font-family:inherit; white-space:pre-wrap;"><span class="yaml-comment">---</span>
+<span class="yaml-key">title:</span> <span class="yaml-str">"My Note"</span>
+<span class="yaml-key">sane_tags:</span> <span class="yaml-str">["topic-a", "topic-b"]</span>
+<span class="yaml-key">sane_keywords:</span> <span class="yaml-str">["key concept", "idea"]</span>
+<span class="yaml-key">sane_links:</span> <span class="yaml-str">["Related Note", "Another Note"]</span>
+<span class="yaml-key">sane_summary:</span> <span class="yaml-str">"A short summary of this note."</span>
+<span class="yaml-comment">---</span></pre>
+            </div>
+            <p>See <a href="output.html" style="color:var(--accent);">Output &amp; Frontmatter</a> for a full explanation of every field SANE adds.</p>
+          </div>
+        </div>
+      </div>
+
+      <h2>Next steps</h2>
+      <p>You're up and running. Here are the most useful things to explore next:</p>
+      <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:20px;">
+        <a href="configuration.html" class="btn-ghost">Configuration reference →</a>
+        <a href="providers.html" class="btn-ghost">Local / offline models →</a>
+        <a href="commands.html" class="btn-ghost">All commands →</a>
+      </div>
+    </article>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <div class="foot-meta">SANE — Smart AI Note Evolution · MIT licensed</div>
+    <div class="foot-links">
+      <a href="https://github.com/Ghost04718/SANE">GitHub</a>
+      <a href="https://github.com/Ghost04718/SANE/issues">Bugs</a>
+      <a href="https://github.com/Ghost04718/SANE/discussions">Discuss</a>
+      <a href="https://buymeacoffee.com/adamchen">Coffee</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

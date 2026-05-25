@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Providers — SANE Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* PROVIDER CARD */
+  .provider-card { background: var(--bg-alt); border: 1px solid var(--line-soft); border-radius: 14px; padding: 28px 28px 24px; margin-top: 24px; }
+  .provider-header { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+  .provider-badge { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); background: var(--accent-faint); border: 1px solid var(--accent-soft); padding: 3px 10px; border-radius: 999px; }
+  .provider-badge.local { color: #7a5f1a; background: #fdf7ec; border-color: #e8c97a; }
+  .provider-title { font-family: 'Fraunces', serif; font-weight: 500; font-size: 21px; letter-spacing: -0.01em; }
+  .provider-body p { font-size: 15.5px; color: var(--ink-soft); line-height: 1.6; margin-bottom: 12px; }
+  .provider-body p:last-child { margin-bottom: 0; }
+
+  .model-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .model-chip { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--bg); border: 1px solid var(--line); padding: 4px 12px; border-radius: 999px; color: var(--ink-soft); }
+  .model-chip.recommended { border-color: var(--accent-soft); color: var(--accent); background: var(--accent-faint); }
+
+  /* MIX GRID */
+  .mix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
+  .mix-cell { background: var(--bg-alt); border: 1px solid var(--line-soft); border-radius: 10px; padding: 18px 20px; }
+  .mix-cell-title { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); margin-bottom: 8px; }
+  .mix-cell p { font-size: 14.5px; color: var(--ink-soft); line-height: 1.55; }
+
+  @media (max-width: 860px) { .mix-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <a href="../index.html" class="logo">
+      <span class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="12" cy="12" r="2.5" fill="currentColor"/>
+          <circle cx="5" cy="8" r="1.5" fill="currentColor"/>
+          <circle cx="19" cy="8" r="1.5" fill="currentColor"/>
+          <circle cx="5" cy="16" r="1.5" fill="currentColor"/>
+          <circle cx="19" cy="16" r="1.5" fill="currentColor"/>
+        </svg>
+      </span>
+      SANE
+    </a>
+    <div class="nav-links">
+      <a href="../index.html#features">Features</a>
+      <a href="../index.html#how">How it works</a>
+      <a href="../index.html#example">Example</a>
+      <a href="index.html" class="active">Docs</a>
+      <a href="https://github.com/Ghost04718/SANE" target="_blank" rel="noopener">GitHub</a>
+    </div>
+    <a href="obsidian://show-plugin?id=sane" class="nav-cta">Get Plugin</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page">
+    <aside class="sidebar">
+      <div class="sidebar-label">Docs</div>
+      <div class="sidebar-links">
+        <a href="index.html">Overview</a>
+        <a href="getting-started.html">Getting Started</a>
+        <a href="configuration.html">Configuration</a>
+        <a href="providers.html" class="active">AI Providers</a>
+        <a href="commands.html">Commands &amp; Triggers</a>
+        <a href="output.html">Output &amp; Frontmatter</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">On this page</div>
+        <div class="sidebar-links">
+          <a href="#openai">OpenAI</a>
+          <a href="#google">Google AI</a>
+          <a href="#grok">Grok</a>
+          <a href="#azure">Azure OpenAI</a>
+          <a href="#local">Local LLM</a>
+          <a href="#mixing">Mixing providers</a>
+        </div>
+      </div>
+    </aside>
+
+    <article class="content">
+      <h1>AI <em>Providers</em></h1>
+      <p class="lede">SANE supports five provider back-ends. The LLM provider (for tags, links, summaries) and the embedding provider (for semantic search) can be configured independently.</p>
+
+      <!-- OPENAI -->
+      <h2 id="openai">OpenAI</h2>
+      <div class="provider-card">
+        <div class="provider-header">
+          <div class="provider-badge">recommended</div>
+          <div class="provider-title">OpenAI</div>
+        </div>
+        <div class="provider-body">
+          <p>The default provider. Offers the widest model selection and the most reliable embedding quality. <code>gpt-4o-mini</code> is cost-effective for most vaults; <code>text-embedding-3-small</code> balances speed and quality for semantic search.</p>
+          <p>Add your key at <strong>Settings → SANE → OpenAI API Key</strong>. Keys are stored in Obsidian's secure secret storage.</p>
+          <div class="model-list">
+            <span class="model-chip recommended">gpt-4o-mini (recommended)</span>
+            <span class="model-chip">gpt-4o</span>
+            <span class="model-chip">gpt-4-turbo</span>
+            <span class="model-chip recommended">text-embedding-3-small (recommended)</span>
+            <span class="model-chip">text-embedding-3-large</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- GOOGLE AI -->
+      <h2 id="google">Google AI (Gemini)</h2>
+      <div class="provider-card">
+        <div class="provider-header">
+          <div class="provider-badge">cloud</div>
+          <div class="provider-title">Google AI</div>
+        </div>
+        <div class="provider-body">
+          <p>Uses the Gemini family of models for generation and Google's embedding API for semantic search. A good alternative for users already in the Google ecosystem.</p>
+          <p>Get a key at <a href="https://aistudio.google.com/" target="_blank" rel="noopener" style="color:var(--accent);">aistudio.google.com</a> and paste it into <strong>Settings → SANE → Google API Key</strong>.</p>
+          <div class="model-list">
+            <span class="model-chip recommended">gemini-1.5-flash (recommended)</span>
+            <span class="model-chip">gemini-1.5-pro</span>
+            <span class="model-chip recommended">embedding-001 (recommended)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- GROK -->
+      <h2 id="grok">Grok (X.AI)</h2>
+      <div class="provider-card">
+        <div class="provider-header">
+          <div class="provider-badge">cloud</div>
+          <div class="provider-title">Grok / X.AI</div>
+        </div>
+        <div class="provider-body">
+          <p>Access X.AI's Grok models via the X.AI API. Compatible with the OpenAI SDK, so setup is straightforward. Note: Grok does not provide its own embedding model — pair it with OpenAI or Google embeddings.</p>
+          <p>Add your X.AI key under <strong>Settings → SANE → Grok API Key</strong>. Set <code>embeddingProvider</code> to <code>openai</code> or <code>google</code> separately.</p>
+          <div class="model-list">
+            <span class="model-chip">grok-beta</span>
+            <span class="model-chip">grok-2</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- AZURE -->
+      <h2 id="azure">Azure OpenAI</h2>
+      <div class="provider-card">
+        <div class="provider-header">
+          <div class="provider-badge">enterprise</div>
+          <div class="provider-title">Azure OpenAI</div>
+        </div>
+        <div class="provider-body">
+          <p>Use your own Azure OpenAI deployment. Required for organizations with data residency or compliance requirements.</p>
+          <p>You need two things: the <strong>endpoint URL</strong> of your deployment and an <strong>API key</strong>. Enter both under <strong>Settings → SANE → Azure</strong>.</p>
+          <div class="code-card">
+            <div class="code-header">
+              <div class="code-dots"><span></span><span></span><span></span></div>
+              <span>Example endpoint</span>
+            </div>
+            <span style="color:#9bbf95;">azureEndpoint:</span> <span style="color:#e8d089;">https://YOUR-RESOURCE.openai.azure.com/openai/deployments/YOUR-DEPLOYMENT</span>
+          </div>
+          <div class="callout callout-warn">
+            <strong>Note:</strong> The model name in SANE settings must match the <em>deployment name</em> in Azure, not the underlying model name.
+          </div>
+        </div>
+      </div>
+
+      <!-- LOCAL -->
+      <h2 id="local">Local LLM (Ollama / vLLM / llama.cpp)</h2>
+      <div class="provider-card">
+        <div class="provider-header">
+          <div class="provider-badge local">offline · free</div>
+          <div class="provider-title">Local LLM</div>
+        </div>
+        <div class="provider-body">
+          <p>Run a local model server with an OpenAI-compatible API — Ollama, vLLM, or llama.cpp all work. Your note content never leaves your machine.</p>
+          <p>Set <code>aiProvider</code> to <code>local</code> and point <code>localEndpoint</code> at your server. The default assumes Ollama running on <code>localhost:11434</code>.</p>
+          <div class="code-card">
+            <div class="code-header">
+              <div class="code-dots"><span></span><span></span><span></span></div>
+              <span>Start Ollama with a model</span>
+            </div>
+            <span style="color:#9bbf95;">$</span> <span style="color:#e8d089;">ollama run llama3</span><br>
+            <span style="color:#9bbf95;">$</span> <span style="color:#e8d089;">ollama pull nomic-embed-text</span>
+          </div>
+          <p>Set <code>llmModel</code> to your pulled model name (e.g. <code>llama3</code>) and <code>embeddingModel</code> to your embedding model (e.g. <code>nomic-embed-text</code>). No API key is required for local endpoints.</p>
+          <div class="callout">
+            <strong>Performance tip:</strong> A 7B model is usually sufficient for generating tags and summaries. Larger models may be slower than the delayed or scheduled trigger can tolerate on modest hardware.
+          </div>
+        </div>
+      </div>
+
+      <!-- MIXING -->
+      <h2 id="mixing">Mixing LLM and embedding providers</h2>
+      <p>The <code>aiProvider</code> and <code>embeddingProvider</code> settings are fully independent. Common combinations:</p>
+      <div class="mix-grid">
+        <div class="mix-cell">
+          <div class="mix-cell-title">LLM: Grok · Embeddings: OpenAI</div>
+          <p>Use Grok's conversational quality for generation while leveraging OpenAI's well-established embedding API for semantic search.</p>
+        </div>
+        <div class="mix-cell">
+          <div class="mix-cell-title">LLM: Local · Embeddings: Local</div>
+          <p>Fully offline. Run both an LLM and an embedding model locally — perfect for private vaults with no internet dependency.</p>
+        </div>
+        <div class="mix-cell">
+          <div class="mix-cell-title">LLM: OpenAI · Embeddings: Local</div>
+          <p>Reduce embedding costs by computing them locally while using a cloud LLM for the richer generation tasks.</p>
+        </div>
+        <div class="mix-cell">
+          <div class="mix-cell-title">LLM: Google · Embeddings: Google</div>
+          <p>Single-provider simplicity. One API key, one billing account, consistent performance across the pipeline.</p>
+        </div>
+      </div>
+    </article>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <div class="foot-meta">SANE — Smart AI Note Evolution · MIT licensed</div>
+    <div class="foot-links">
+      <a href="https://github.com/Ghost04718/SANE">GitHub</a>
+      <a href="https://github.com/Ghost04718/SANE/issues">Bugs</a>
+      <a href="https://github.com/Ghost04718/SANE/discussions">Discuss</a>
+      <a href="https://buymeacoffee.com/adamchen">Coffee</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

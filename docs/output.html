@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Output &amp; Frontmatter — SANE Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* FIELD BLOCKS */
+  .field-list { display: flex; flex-direction: column; gap: 24px; margin-top: 24px; }
+  .field-block { background: var(--bg-alt); border: 1px solid var(--line-soft); border-radius: 14px; overflow: hidden; }
+  .field-header { display: flex; align-items: baseline; gap: 14px; padding: 20px 24px 16px; border-bottom: 1px solid var(--line-soft); }
+  .field-key { font-family: 'JetBrains Mono', monospace; font-size: 15px; color: var(--ink); font-weight: 500; }
+  .field-type { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-faint); }
+  .field-toggle { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); background: var(--accent-faint); border: 1px solid var(--accent-soft); padding: 2px 8px; border-radius: 999px; }
+  .field-body { padding: 18px 24px; }
+  .field-body p { font-size: 15.5px; color: var(--ink-soft); line-height: 1.6; margin-bottom: 12px; }
+  .field-body p:last-child { margin-bottom: 0; }
+  .field-example { margin-top: 14px; }
+
+  /* REVERT */
+  .revert-options { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
+  .revert-card { background: var(--bg-alt); border: 1px solid var(--line-soft); border-radius: 12px; padding: 20px 22px; }
+  .revert-title { font-family: 'Fraunces', serif; font-weight: 500; font-size: 18px; letter-spacing: -0.01em; margin-bottom: 8px; }
+  .revert-desc { font-size: 14.5px; color: var(--ink-soft); line-height: 1.55; }
+
+  .btn-ghost { margin-top: 20px; }
+
+  @media (max-width: 860px) { .revert-options { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <a href="../index.html" class="logo">
+      <span class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="12" cy="12" r="2.5" fill="currentColor"/>
+          <circle cx="5" cy="8" r="1.5" fill="currentColor"/>
+          <circle cx="19" cy="8" r="1.5" fill="currentColor"/>
+          <circle cx="5" cy="16" r="1.5" fill="currentColor"/>
+          <circle cx="19" cy="16" r="1.5" fill="currentColor"/>
+        </svg>
+      </span>
+      SANE
+    </a>
+    <div class="nav-links">
+      <a href="../index.html#features">Features</a>
+      <a href="../index.html#how">How it works</a>
+      <a href="../index.html#example">Example</a>
+      <a href="index.html" class="active">Docs</a>
+      <a href="https://github.com/Ghost04718/SANE" target="_blank" rel="noopener">GitHub</a>
+    </div>
+    <a href="obsidian://show-plugin?id=sane" class="nav-cta">Get Plugin</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page">
+    <aside class="sidebar">
+      <div class="sidebar-label">Docs</div>
+      <div class="sidebar-links">
+        <a href="index.html">Overview</a>
+        <a href="getting-started.html">Getting Started</a>
+        <a href="configuration.html">Configuration</a>
+        <a href="providers.html">AI Providers</a>
+        <a href="commands.html">Commands &amp; Triggers</a>
+        <a href="output.html" class="active">Output &amp; Frontmatter</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">On this page</div>
+        <div class="sidebar-links">
+          <a href="#overview">Overview</a>
+          <a href="#fields">All fields</a>
+          <a href="#example">Full example</a>
+          <a href="#revert">Reverting</a>
+        </div>
+      </div>
+    </aside>
+
+    <article class="content">
+      <h1>Output &amp; <em>Frontmatter</em></h1>
+      <p class="lede">Everything SANE writes lives in the YAML frontmatter at the top of your note, prefixed with <code>sane_</code>. Your note body is never modified.</p>
+
+      <!-- OVERVIEW -->
+      <h2 id="overview">Overview</h2>
+      <p>SANE uses the <code>sane_</code> prefix as a namespace for all generated fields. This makes it trivial to distinguish AI-generated metadata from your own frontmatter, and to remove it all at once if needed.</p>
+      <p>Each field can be independently enabled or disabled via <a href="configuration.html#features" style="color:var(--accent);">feature toggles</a> in Settings. SANE will never overwrite your original frontmatter keys.</p>
+
+      <!-- FIELDS -->
+      <h2 id="fields">All fields</h2>
+      <div class="field-list">
+
+        <div class="field-block">
+          <div class="field-header">
+            <div class="field-key">sane_tags</div>
+            <div class="field-type">string[]</div>
+            <div class="field-toggle">enableTags</div>
+          </div>
+          <div class="field-body">
+            <p>3 to 7 topic tags, written in lowercase with hyphens. Generated by the LLM based on the note's content and the most semantically related notes in your vault.</p>
+            <p>Tags are designed to be stable across re-processing — the same note should produce similar tags each time.</p>
+            <div class="field-example">
+              <code style="font-size:13px;">sane_tags: ["machine-learning", "neural-networks", "deep-learning"]</code>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-block">
+          <div class="field-header">
+            <div class="field-key">sane_keywords</div>
+            <div class="field-type">string[]</div>
+            <div class="field-toggle">enableKeywords</div>
+          </div>
+          <div class="field-body">
+            <p>3 to 8 key phrases extracted from the note's content. More specific than tags — keywords capture the concrete concepts, terms, and ideas in the note rather than broad topic labels.</p>
+            <div class="field-example">
+              <code style="font-size:13px;">sane_keywords: ["backpropagation", "gradient descent", "activation function"]</code>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-block">
+          <div class="field-header">
+            <div class="field-key">sane_links</div>
+            <div class="field-type">string[]</div>
+            <div class="field-toggle">enableLinks</div>
+          </div>
+          <div class="field-body">
+            <p>Wiki-style links to the most relevant notes in your vault, as determined by semantic similarity (cosine distance between embeddings). The number of links is controlled by the <code>relevantNotesCount</code> setting (default 3).</p>
+            <p>Links use note titles, not file paths. Obsidian resolves them automatically.</p>
+            <div class="field-example">
+              <code style="font-size:13px;">sane_links: ["Introduction to AI", "Neural Net Basics", "Gradient Descent Explained"]</code>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-block">
+          <div class="field-header">
+            <div class="field-key">sane_summary</div>
+            <div class="field-type">string</div>
+            <div class="field-toggle">enableSummary</div>
+          </div>
+          <div class="field-body">
+            <p>A 1–2 sentence summary of the note, capped at roughly 50 words. Written to be neutral and descriptive — useful for search, graph views, and quick skimming.</p>
+            <div class="field-example">
+              <code style="font-size:13px;">sane_summary: "An introduction to neural networks covering architecture, training via backpropagation, and common activation functions."</code>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-block">
+          <div class="field-header">
+            <div class="field-key">sane_version</div>
+            <div class="field-type">string</div>
+            <div class="field-toggle">always on</div>
+          </div>
+          <div class="field-body">
+            <p>The version of SANE that last processed this note. Used internally to detect when a note was processed with an older version and may benefit from re-processing.</p>
+            <div class="field-example">
+              <code style="font-size:13px;">sane_version: "1.0.3"</code>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-block">
+          <div class="field-header">
+            <div class="field-key">sane_created_at</div>
+            <div class="field-type">string (ISO 8601)</div>
+            <div class="field-toggle">enableCreationTimestamp</div>
+          </div>
+          <div class="field-body">
+            <p>Timestamp of the first time SANE processed this note. Written once and never updated. Useful for tracking when a note entered the SANE-managed set.</p>
+            <div class="field-example">
+              <code style="font-size:13px;">sane_created_at: "2025/5/5 19:59:11"</code>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-block">
+          <div class="field-header">
+            <div class="field-key">sane_modified_at</div>
+            <div class="field-type">string (ISO 8601)</div>
+            <div class="field-toggle">enableModificationTimestamp</div>
+          </div>
+          <div class="field-body">
+            <p>Timestamp updated each time SANE reprocesses the note. Reflects when the AI-generated metadata was last refreshed, not when you last edited the note body.</p>
+            <div class="field-example">
+              <code style="font-size:13px;">sane_modified_at: "2025/6/29 12:15:12"</code>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- FULL EXAMPLE -->
+      <h2 id="example">Full example</h2>
+      <p>A note with all fields enabled. The top block is original user frontmatter; the bottom block is everything SANE adds.</p>
+      <div class="code-card">
+        <div class="code-header">
+          <div class="code-dots"><span></span><span></span><span></span></div>
+          <span>neural-networks.md</span>
+        </div>
+<pre style="margin:0; font-family:inherit; white-space:pre-wrap;"><span class="yaml-comment">---</span>
+<span class="yaml-comment"># your original frontmatter</span>
+<span class="yaml-key">title:</span> <span class="yaml-str">"On Neural Networks"</span>
+<span class="yaml-key">created:</span> <span class="yaml-str">"2025-05-01"</span>
+
+<span class="yaml-comment"># added by SANE</span>
+<span class="yaml-new"><span class="yaml-key">sane_tags:</span> <span class="yaml-str">["machine-learning", "neural-networks", "deep-learning"]</span>
+<span class="yaml-key">sane_keywords:</span> <span class="yaml-str">["backpropagation", "gradient descent", "activation function"]</span>
+<span class="yaml-key">sane_links:</span> <span class="yaml-str">["Introduction to AI", "Neural Net Basics", "Gradient Descent Explained"]</span>
+<span class="yaml-key">sane_summary:</span> <span class="yaml-str">"An introduction to neural networks covering architecture, training, and common activation functions."</span>
+<span class="yaml-key">sane_version:</span> <span class="yaml-str">"1.0.3"</span>
+<span class="yaml-key">sane_created_at:</span> <span class="yaml-str">"2025/5/5 19:59:11"</span>
+<span class="yaml-key">sane_modified_at:</span> <span class="yaml-str">"2025/6/29 12:15:12"</span></span>
+<span class="yaml-comment">---</span>
+
+Your note body here. SANE never touches this.</pre>
+      </div>
+
+      <!-- REVERTING -->
+      <h2 id="revert">Reverting changes</h2>
+      <p>Because every generated field starts with <code>sane_</code>, reverting is unambiguous. SANE will never touch a field that doesn't carry the prefix.</p>
+      <div class="revert-options">
+        <div class="revert-card">
+          <div class="revert-title">Revert one note</div>
+          <div class="revert-desc">Open the note, open the command palette, and run <strong>SANE: Revert current note</strong>. All <code>sane_*</code> fields are removed from the frontmatter immediately.</div>
+        </div>
+        <div class="revert-card">
+          <div class="revert-title">Revert all notes</div>
+          <div class="revert-desc">Run <strong>SANE: Revert all notes</strong> from the command palette. A confirmation dialog appears first. This walks every processed note in your target folder and removes all <code>sane_*</code> fields.</div>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:24px;">
+        <strong>Safe to repeat:</strong> Reverting and re-initializing is perfectly safe. SANE will re-generate fresh metadata from scratch the next time a note is processed.
+      </div>
+      <a href="commands.html" class="btn-ghost">View all commands →</a>
+    </article>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <div class="foot-meta">SANE — Smart AI Note Evolution · MIT licensed</div>
+    <div class="foot-links">
+      <a href="https://github.com/Ghost04718/SANE">GitHub</a>
+      <a href="https://github.com/Ghost04718/SANE/issues">Bugs</a>
+      <a href="https://github.com/Ghost04718/SANE/discussions">Discuss</a>
+      <a href="https://buymeacoffee.com/adamchen">Coffee</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

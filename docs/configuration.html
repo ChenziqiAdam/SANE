@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Configuration — SANE Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* SETTINGS TABLE */
+  .settings-group { display: flex; flex-direction: column; gap: 2px; margin-top: 24px; }
+  .setting-row {
+    display: grid; grid-template-columns: 1fr 1.4fr;
+    gap: 20px; padding: 18px 20px;
+    background: var(--bg-alt); border: 1px solid var(--line-soft);
+    border-radius: 10px; align-items: start;
+  }
+  .setting-row + .setting-row { border-top: none; border-radius: 0; }
+  .setting-row:first-child { border-radius: 10px 10px 0 0; }
+  .setting-row:last-child { border-radius: 0 0 10px 10px; }
+  .setting-row:only-child { border-radius: 10px; }
+  .setting-key { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--ink); font-weight: 500; }
+  .setting-default { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-faint); margin-top: 4px; }
+  .setting-desc { font-size: 15px; color: var(--ink-soft); line-height: 1.55; }
+  .setting-desc code { background: var(--bg); }
+
+  @media (max-width: 860px) { .setting-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <a href="../index.html" class="logo">
+      <span class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="12" cy="12" r="2.5" fill="currentColor"/>
+          <circle cx="5" cy="8" r="1.5" fill="currentColor"/>
+          <circle cx="19" cy="8" r="1.5" fill="currentColor"/>
+          <circle cx="5" cy="16" r="1.5" fill="currentColor"/>
+          <circle cx="19" cy="16" r="1.5" fill="currentColor"/>
+        </svg>
+      </span>
+      SANE
+    </a>
+    <div class="nav-links">
+      <a href="../index.html#features">Features</a>
+      <a href="../index.html#how">How it works</a>
+      <a href="../index.html#example">Example</a>
+      <a href="index.html" class="active">Docs</a>
+      <a href="https://github.com/Ghost04718/SANE" target="_blank" rel="noopener">GitHub</a>
+    </div>
+    <a href="obsidian://show-plugin?id=sane" class="nav-cta">Get Plugin</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page">
+    <aside class="sidebar">
+      <div class="sidebar-label">Docs</div>
+      <div class="sidebar-links">
+        <a href="index.html">Overview</a>
+        <a href="getting-started.html">Getting Started</a>
+        <a href="configuration.html" class="active">Configuration</a>
+        <a href="providers.html">AI Providers</a>
+        <a href="commands.html">Commands &amp; Triggers</a>
+        <a href="output.html">Output &amp; Frontmatter</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">On this page</div>
+        <div class="sidebar-links">
+          <a href="#provider">Provider</a>
+          <a href="#models">Models</a>
+          <a href="#trigger">Processing</a>
+          <a href="#scope">Scope</a>
+          <a href="#cost">Cost</a>
+          <a href="#features">Features</a>
+          <a href="#advanced">Advanced</a>
+        </div>
+      </div>
+    </aside>
+
+    <article class="content">
+      <h1><em>Configuration</em> Reference</h1>
+      <p class="lede">Every setting in SANE, explained. Access them at <strong>Settings → SANE</strong> inside Obsidian.</p>
+
+      <!-- PROVIDER -->
+      <h2 id="provider">AI Provider</h2>
+      <p>Choose which service handles language generation and embedding computation. These can be different providers.</p>
+      <div class="settings-group">
+        <div class="setting-row">
+          <div>
+            <div class="setting-key">aiProvider</div>
+            <div class="setting-default">default: openai</div>
+          </div>
+          <div class="setting-desc">The provider used for LLM calls (tags, keywords, links, summary). Options: <code>openai</code>, <code>google</code>, <code>grok</code>, <code>azure</code>, <code>local</code>.</div>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-key">embeddingProvider</div>
+            <div class="setting-default">default: openai</div>
+          </div>
+          <div class="setting-desc">The provider used for semantic embeddings. Can differ from <code>aiProvider</code>. Options: <code>openai</code>, <code>google</code>, <code>local</code>. Falls back to a hash-based similarity when no key is set.</div>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-key">azureEndpoint</div>
+            <div class="setting-default">default: ""</div>
+          </div>
+          <div class="setting-desc">Required when <code>aiProvider</code> is <code>azure</code>. Full URL of your Azure OpenAI deployment endpoint.</div>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-key">localEndpoint</div>
+            <div class="setting-default">default: http://localhost:11434/v1</div>
+          </div>
+          <div class="setting-desc">Base URL for a local LLM server (Ollama, vLLM, llama.cpp). Used when <code>aiProvider</code> is <code>local</code>.</div>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-key">embeddingLocalEndpoint</div>
+            <div class="setting-default">default: http://localhost:11434/v1</div>
+          </div>
+          <div class="setting-desc">Base URL for a local embedding server. Can be the same as <code>localEndpoint</code> or a separate server.</div>
+        </div>
+      </div>
+
+      <!-- MODELS -->
+      <h2 id="models">Models</h2>
+      <p>SANE picks sensible defaults per provider. Override them here if you want a specific model version.</p>
+      <div class="settings-group">
+        <div class="setting-row">
+          <div>
+            <div class="setting-key">llmModel</div>
+            <div class="setting-default">default: gpt-4o-mini (OpenAI)</div>
+          </div>
+          <div class="setting-desc">The model used for generating tags, keywords, links, and summaries. Examples: <code>gpt-4o</code>, <code>gemini-1.5-flash</code>, <code>grok-beta</code>, <code>llama3</code>.</div>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-key">embeddingModel</div>
+            <div class="setting-default">default: text-embedding-3-small (OpenAI)</div>
+          </div>
+          <div class="setting-desc">The model used to create semantic embeddings for similarity search. Examples: <code>text-embedding-3-large</code>, <code>embedding-001</code> (Google), <code>nomic-embed-text</code> (Ollama).</div>
+        </div>
+      </div>
+
+      <!-- PROCESSING -->
+      <h2 id="trigger">Processing</h2>
+      <p>Control when and how often SANE processes notes. See <a href="commands.html#triggers" style="color:var(--accent);">Trigger modes</a> for a full comparison.</p>
+      <div class="settings-group">
+        <div class="setting-row">
+          <div>
+            <div class="setting-key">processingTrigger</div>
+            <div class="setting-default">default: delayed</div>
+          </div>
+          <div class="setting-desc">When to process a note after it changes. <code>immediate</code> — on every save; <code>delayed</code> — after a quiet period; <code>scheduled</code> — daily at a set hour; <code>manual</code> — only via command.</div>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-key">delayMinutes</div>
+            <div class="setting-default">default: 10</div>
+          </div>
+          <div class="setting-desc">Minutes of inactivity before a note is processed. Only applies when <code>processingTrigger</code> is <code>delayed</code>.</div>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-key">scheduleHour</div>
+            <div class="setting-default">default: 2 (2 AM)</div>
+          </div>
+          <div class="setting-desc">Hour (0–23) when the nightly batch run fires. Only applies when <code>processingTrigger</code> is <code>scheduled</code>.</div>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-key">relevantNotesCount</div>
+            <div class="setting-default">default: 3</div>
+          </div>
+          <div class="setting-desc">How many of the most semantically similar notes to surface as context when generating tags, links, and summaries.</div>
+        </div>
+      </div>
+
+      <!-- SCOPE -->
+      <h2 id="scope">Security &amp; Scope</h2>
+      <div class="settings-group">
+        <div class="setting-row">
+          <div>
+            <div class="setting-key">targetFolder</div>
+            <div class="setting-default">default: "" (all folders)</div>
+          </div>
+          <div class="setting-desc">Restrict processing to this folder path relative to your vault root. Example: <code>Notes/Work</code>. Leave empty to process all notes.</div>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-key">requireBackupWarning</div>
+            <div class="setting-default">default: true</div>
+          </div>
+          <div class="setting-desc">Show a confirmation dialog before running bulk operations. Recommended to leave on until you're comfortable with SANE's output.</div>
+        </div>
+      </div>
+
+      <!-- COST -->
+      <h2 id="cost">Cost Management</h2>
+      <p>SANE tracks every API call and pauses automatically when your budget is exceeded.</p>
+      <div class="settings-group">
+        <div class="setting-row">
+          <div>
+            <div class="setting-key">dailyBudget</div>
+            <div class="setting-default">default: 1.00 (USD)</div>
+          </div>
+          <div class="setting-desc">Maximum dollars to spend on API calls per calendar day. SANE will stop processing and notify you when this is reached. Set to <code>0</code> to disable the cap.</div>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-key">costTracking</div>
+            <div class="setting-default">default: true</div>
+          </div>
+          <div class="setting-desc">Whether to record and display cost data. Disabling removes the budget cap. Run <em>SANE: Show cost summary</em> to see today's and this month's totals.</div>
+        </div>
+      </div>
+
+      <!-- FEATURES -->
+      <h2 id="features">Feature Toggles</h2>
+      <p>Enable or disable each type of frontmatter field SANE generates independently.</p>
+      <div class="settings-group">
+        <div class="setting-row">
+          <div><div class="setting-key">enableTags</div><div class="setting-default">default: true</div></div>
+          <div class="setting-desc">Generate <code>sane_tags</code> — 3 to 7 lowercase, hyphenated topic tags.</div>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-key">enableKeywords</div><div class="setting-default">default: true</div></div>
+          <div class="setting-desc">Generate <code>sane_keywords</code> — 3 to 8 key phrases extracted from the note's content.</div>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-key">enableLinks</div><div class="setting-default">default: true</div></div>
+          <div class="setting-desc">Generate <code>sane_links</code> — wiki-style links to the most relevant notes in your vault.</div>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-key">enableSummary</div><div class="setting-default">default: true</div></div>
+          <div class="setting-desc">Generate <code>sane_summary</code> — a 1–2 sentence summary, capped at roughly 50 words.</div>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-key">enableCreationTimestamp</div><div class="setting-default">default: true</div></div>
+          <div class="setting-desc">Write <code>sane_created_at</code> the first time SANE processes a note.</div>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-key">enableModificationTimestamp</div><div class="setting-default">default: true</div></div>
+          <div class="setting-desc">Update <code>sane_modified_at</code> each time SANE reprocesses a note.</div>
+        </div>
+      </div>
+
+      <!-- ADVANCED -->
+      <h2 id="advanced">Advanced</h2>
+      <div class="settings-group">
+        <div class="setting-row">
+          <div><div class="setting-key">maxTokens</div><div class="setting-default">default: 2000</div></div>
+          <div class="setting-desc">Token limit for LLM responses. Lower values reduce cost but may truncate longer summaries or tag lists.</div>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-key">temperature</div><div class="setting-default">default: 0.3</div></div>
+          <div class="setting-desc">LLM sampling temperature. Lower values (closer to 0) produce more consistent, deterministic output. Raise towards 1 for more varied suggestions.</div>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-key">debugMode</div><div class="setting-default">default: false</div></div>
+          <div class="setting-desc">Enables extra logging in the developer console and unlocks the <em>SANE: Test AI response</em> command. Use when troubleshooting a provider connection.</div>
+        </div>
+      </div>
+    </article>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <div class="foot-meta">SANE — Smart AI Note Evolution · MIT licensed</div>
+    <div class="foot-links">
+      <a href="https://github.com/Ghost04718/SANE">GitHub</a>
+      <a href="https://github.com/Ghost04718/SANE/issues">Bugs</a>
+      <a href="https://github.com/Ghost04718/SANE/discussions">Discuss</a>
+      <a href="https://buymeacoffee.com/adamchen">Coffee</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

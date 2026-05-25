@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SANE Docs — Smart AI Note Evolution</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* HERO */
+  .hero { padding: 100px 0 80px; }
+  .hero-tag {
+    display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    color: var(--accent); padding: 6px 14px; background: var(--accent-faint);
+    border-radius: 999px; margin-bottom: 28px;
+  }
+  h1.hero-title {
+    font-family: 'Fraunces', serif; font-weight: 400;
+    font-size: clamp(38px, 5.5vw, 68px); line-height: 1.06;
+    letter-spacing: -0.03em; margin-bottom: 24px; max-width: 800px;
+  }
+  h1.hero-title em { font-style: italic; font-weight: 300; color: var(--accent); }
+  .hero-lede { font-size: 19px; line-height: 1.55; color: var(--ink-soft); max-width: 560px; }
+
+  /* SECTION */
+  .section-tag { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); margin-bottom: 18px; letter-spacing: 0.02em; }
+  .section-title {
+    font-family: 'Fraunces', serif; font-weight: 400;
+    font-size: clamp(30px, 4vw, 46px); line-height: 1.12;
+    letter-spacing: -0.025em; margin-bottom: 18px; max-width: 720px;
+  }
+  .section-title em { font-style: italic; color: var(--accent); font-weight: 300; }
+
+  /* DOC CARDS */
+  .doc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 48px; }
+  .doc-card {
+    background: var(--bg-alt); border: 1px solid var(--line-soft); border-radius: 16px;
+    padding: 32px 28px; text-decoration: none; color: var(--ink);
+    transition: all 0.2s; display: flex; flex-direction: column; gap: 12px;
+  }
+  .doc-card:hover { border-color: var(--accent-soft); background: var(--accent-faint); transform: translateY(-2px); }
+  .doc-card-icon { width: 36px; height: 36px; color: var(--accent); }
+  .doc-card-icon svg { width: 100%; height: 100%; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .doc-card-title { font-family: 'Fraunces', serif; font-weight: 500; font-size: 20px; letter-spacing: -0.01em; line-height: 1.2; }
+  .doc-card-desc { font-size: 15px; color: var(--ink-soft); line-height: 1.5; }
+  .doc-card-arrow { margin-top: auto; padding-top: 16px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); display: flex; align-items: center; gap: 6px; }
+  .doc-card-arrow svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+  footer { margin-top: 120px; }
+
+  @media (max-width: 860px) {
+    .hero { padding: 60px 0 50px; }
+    .doc-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <a href="../index.html" class="logo">
+      <span class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="12" cy="12" r="2.5" fill="currentColor"/>
+          <circle cx="5" cy="8" r="1.5" fill="currentColor"/>
+          <circle cx="19" cy="8" r="1.5" fill="currentColor"/>
+          <circle cx="5" cy="16" r="1.5" fill="currentColor"/>
+          <circle cx="19" cy="16" r="1.5" fill="currentColor"/>
+        </svg>
+      </span>
+      SANE
+    </a>
+    <div class="nav-links">
+      <a href="../index.html#features">Features</a>
+      <a href="../index.html#how">How it works</a>
+      <a href="../index.html#example">Example</a>
+      <a href="index.html" class="active">Docs</a>
+      <a href="https://github.com/Ghost04718/SANE" target="_blank" rel="noopener">GitHub</a>
+    </div>
+    <a href="obsidian://show-plugin?id=sane" class="nav-cta">Get Plugin</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <span class="hero-tag">Documentation</span>
+    <h1 class="hero-title">Everything you need to<br><em>use SANE</em>.</h1>
+    <p class="hero-lede">Guides, configuration reference, and examples — all in one place.</p>
+  </div>
+</section>
+
+<!-- DOC CARDS -->
+<section style="padding: 0 0 80px;">
+  <div class="container">
+    <div class="section-tag">— Browse the docs</div>
+    <h2 class="section-title">Pick a topic to <em>get started</em>.</h2>
+
+    <div class="doc-grid">
+      <a href="getting-started.html" class="doc-card">
+        <div class="doc-card-icon">
+          <svg viewBox="0 0 32 32"><path d="M6 10l10-6 10 6v14l-10 6-10-6V10z"/><path d="M16 4v22M6 10l10 6 10-6"/></svg>
+        </div>
+        <div class="doc-card-title">Getting Started</div>
+        <div class="doc-card-desc">Install the plugin, connect an AI provider, and process your first note in under five minutes.</div>
+        <div class="doc-card-arrow">Read guide <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+      </a>
+
+      <a href="configuration.html" class="doc-card">
+        <div class="doc-card-icon">
+          <svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="3"/><path d="M16 4v3M16 25v3M4 16h3M25 16h3M7.2 7.2l2.1 2.1M22.7 22.7l2.1 2.1M7.2 24.8l2.1-2.1M22.7 9.3l2.1-2.1"/></svg>
+        </div>
+        <div class="doc-card-title">Configuration</div>
+        <div class="doc-card-desc">Full reference for every setting — triggers, budgets, feature toggles, and advanced options.</div>
+        <div class="doc-card-arrow">Read reference <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+      </a>
+
+      <a href="providers.html" class="doc-card">
+        <div class="doc-card-icon">
+          <svg viewBox="0 0 32 32"><path d="M6 16l5-5 6 6 9-9"/><path d="M19 8h7v7"/></svg>
+        </div>
+        <div class="doc-card-title">AI Providers</div>
+        <div class="doc-card-desc">Set up OpenAI, Google AI, Grok, Azure, or a fully local model. Mix providers for embeddings and chat.</div>
+        <div class="doc-card-arrow">Read guide <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+      </a>
+
+      <a href="commands.html" class="doc-card">
+        <div class="doc-card-icon">
+          <svg viewBox="0 0 32 32"><rect x="4" y="8" width="24" height="16" rx="3"/><path d="M9 14h14M9 18h8"/></svg>
+        </div>
+        <div class="doc-card-title">Commands &amp; Triggers</div>
+        <div class="doc-card-desc">All available commands, trigger modes, and what the status bar is telling you.</div>
+        <div class="doc-card-arrow">Read guide <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+      </a>
+
+      <a href="output.html" class="doc-card">
+        <div class="doc-card-icon">
+          <svg viewBox="0 0 32 32"><rect x="6" y="5" width="20" height="22" rx="2"/><path d="M11 11h10M11 15h7M11 19h5"/></svg>
+        </div>
+        <div class="doc-card-title">Output &amp; Frontmatter</div>
+        <div class="doc-card-desc">What SANE writes to your notes — all <code style="font-family:'JetBrains Mono',monospace; font-size:13px;">sane_*</code> fields explained, with examples and how to revert.</div>
+        <div class="doc-card-arrow">Read reference <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+      </a>
+
+      <a href="https://github.com/Ghost04718/SANE" target="_blank" rel="noopener" class="doc-card">
+        <div class="doc-card-icon">
+          <svg viewBox="0 0 32 32"><path d="M16 3C9 3 3 9 3 16c0 5.8 3.8 10.8 9 12.5.7.1.9-.3.9-.6v-2c-3.7.8-4.5-1.8-4.5-1.8-.6-1.5-1.5-2-1.5-2-1.2-.9.1-.9.1-.9 1.3.1 2 1.4 2 1.4 1.2 2 3.1 1.4 3.8 1.1.1-.8.5-1.4.8-1.7-2.9-.3-5.9-1.5-5.9-6.6 0-1.4.5-2.6 1.3-3.6-.1-.3-.6-1.6.1-3.4 0 0 1.1-.3 3.5 1.3a12 12 0 016.2 0c2.4-1.6 3.5-1.3 3.5-1.3.7 1.8.2 3.1.1 3.4.8 1 1.3 2.2 1.3 3.6 0 5.1-3.1 6.3-6 6.6.5.4.9 1.2.9 2.4v3.6c0 .3.2.7.9.6C25.2 26.8 29 21.8 29 16c0-7-6-13-13-13z"/></svg>
+        </div>
+        <div class="doc-card-title">GitHub</div>
+        <div class="doc-card-desc">Source code, releases, issue tracker, and community discussions.</div>
+        <div class="doc-card-arrow">Open GitHub <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="foot-meta">SANE — Smart AI Note Evolution · MIT licensed</div>
+    <div class="foot-links">
+      <a href="https://github.com/Ghost04718/SANE">GitHub</a>
+      <a href="https://github.com/Ghost04718/SANE/issues">Bugs</a>
+      <a href="https://github.com/Ghost04718/SANE/discussions">Discuss</a>
+      <a href="https://buymeacoffee.com/adamchen">Coffee</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

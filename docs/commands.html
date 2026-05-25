@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Commands &amp; Triggers — SANE Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* COMMAND LIST */
+  .command-list { display: flex; flex-direction: column; gap: 2px; margin-top: 24px; }
+  .command-item { display: grid; grid-template-columns: 1fr 1.4fr; gap: 20px; padding: 18px 20px; background: var(--bg-alt); border: 1px solid var(--line-soft); border-radius: 10px; align-items: start; }
+  .command-item + .command-item { border-top: none; border-radius: 0; }
+  .command-item:first-child { border-radius: 10px 10px 0 0; }
+  .command-item:last-child { border-radius: 0 0 10px 10px; }
+  .command-name { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--ink); font-weight: 500; line-height: 1.4; }
+  .command-desc { font-size: 15px; color: var(--ink-soft); line-height: 1.55; }
+  .command-desc code { background: var(--bg); }
+
+  /* TRIGGER CARDS */
+  .trigger-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
+  .trigger-card { background: var(--bg-alt); border: 1px solid var(--line-soft); border-radius: 12px; padding: 22px 22px 18px; }
+  .trigger-label { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--accent); margin-bottom: 10px; }
+  .trigger-title { font-family: 'Fraunces', serif; font-weight: 500; font-size: 19px; letter-spacing: -0.01em; margin-bottom: 8px; }
+  .trigger-desc { font-size: 15px; color: var(--ink-soft); line-height: 1.55; }
+  .trigger-card.recommended { border-color: var(--accent-soft); background: var(--accent-faint); }
+
+  /* STATUS BAR */
+  .status-examples { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+  .status-row { display: flex; align-items: center; gap: 16px; background: var(--bg-alt); border: 1px solid var(--line-soft); border-radius: 8px; padding: 14px 18px; }
+  .status-display { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--ink); min-width: 220px; }
+  .status-meaning { font-size: 15px; color: var(--ink-soft); }
+
+  @media (max-width: 860px) {
+    .trigger-grid { grid-template-columns: 1fr; }
+    .command-item { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <a href="../index.html" class="logo">
+      <span class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="12" cy="12" r="2.5" fill="currentColor"/>
+          <circle cx="5" cy="8" r="1.5" fill="currentColor"/>
+          <circle cx="19" cy="8" r="1.5" fill="currentColor"/>
+          <circle cx="5" cy="16" r="1.5" fill="currentColor"/>
+          <circle cx="19" cy="16" r="1.5" fill="currentColor"/>
+        </svg>
+      </span>
+      SANE
+    </a>
+    <div class="nav-links">
+      <a href="../index.html#features">Features</a>
+      <a href="../index.html#how">How it works</a>
+      <a href="../index.html#example">Example</a>
+      <a href="index.html" class="active">Docs</a>
+      <a href="https://github.com/Ghost04718/SANE" target="_blank" rel="noopener">GitHub</a>
+    </div>
+    <a href="obsidian://show-plugin?id=sane" class="nav-cta">Get Plugin</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page">
+    <aside class="sidebar">
+      <div class="sidebar-label">Docs</div>
+      <div class="sidebar-links">
+        <a href="index.html">Overview</a>
+        <a href="getting-started.html">Getting Started</a>
+        <a href="configuration.html">Configuration</a>
+        <a href="providers.html">AI Providers</a>
+        <a href="commands.html" class="active">Commands &amp; Triggers</a>
+        <a href="output.html">Output &amp; Frontmatter</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">On this page</div>
+        <div class="sidebar-links">
+          <a href="#commands">Commands</a>
+          <a href="#triggers">Trigger modes</a>
+          <a href="#statusbar">Status bar</a>
+          <a href="#ribbon">Ribbon button</a>
+        </div>
+      </div>
+    </aside>
+
+    <article class="content">
+      <h1>Commands &amp; <em>Triggers</em></h1>
+      <p class="lede">All SANE commands are available via the Obsidian command palette (<kbd>Cmd/Ctrl + P</kbd>). Trigger modes control when processing happens automatically.</p>
+
+      <!-- COMMANDS -->
+      <h2 id="commands">Commands</h2>
+      <div class="command-list">
+        <div class="command-item">
+          <div class="command-name">SANE: Process current note</div>
+          <div class="command-desc">Immediately process the note open in the active editor. Useful in <code>manual</code> trigger mode or to re-process a note after editing.</div>
+        </div>
+        <div class="command-item">
+          <div class="command-name">SANE: Initialize all notes</div>
+          <div class="command-desc">Process every note in your target folder (or entire vault if no folder is set). Run this once after installing to build the semantic index. A confirmation dialog appears first if <code>requireBackupWarning</code> is on.</div>
+        </div>
+        <div class="command-item">
+          <div class="command-name">SANE: Show cost summary</div>
+          <div class="command-desc">Display today's and this month's total API spend, broken down by provider. Only available when <code>costTracking</code> is enabled.</div>
+        </div>
+        <div class="command-item">
+          <div class="command-name">SANE: Revert current note</div>
+          <div class="command-desc">Remove all <code>sane_*</code> fields from the frontmatter of the active note. Your original content is fully restored.</div>
+        </div>
+        <div class="command-item">
+          <div class="command-name">SANE: Revert all notes</div>
+          <div class="command-desc">Remove all <code>sane_*</code> fields from every processed note in your target folder. A confirmation dialog appears before this runs.</div>
+        </div>
+        <div class="command-item">
+          <div class="command-name">SANE: Test AI response</div>
+          <div class="command-desc">Send a test prompt to your configured AI provider and print the response to the developer console. Only available when <code>debugMode</code> is <code>true</code>. Use this to verify your API key and endpoint are working.</div>
+        </div>
+      </div>
+
+      <!-- TRIGGERS -->
+      <h2 id="triggers">Trigger modes</h2>
+      <p>Set via <code>processingTrigger</code> in Settings. Controls when SANE processes a note after it's been edited or created.</p>
+      <div class="trigger-grid">
+        <div class="trigger-card">
+          <div class="trigger-label">immediate</div>
+          <div class="trigger-title">On every save</div>
+          <div class="trigger-desc">SANE processes the note as soon as it detects a file change. Best for vaults where notes are finalized quickly and you want instant feedback.</div>
+        </div>
+        <div class="trigger-card recommended">
+          <div class="trigger-label">delayed · default</div>
+          <div class="trigger-title">After a quiet period</div>
+          <div class="trigger-desc">Processing fires after the note has been untouched for <code>delayMinutes</code> (default 10). Avoids processing drafts mid-thought. Recommended for most users.</div>
+        </div>
+        <div class="trigger-card">
+          <div class="trigger-label">scheduled</div>
+          <div class="trigger-title">Once a day</div>
+          <div class="trigger-desc">All modified notes are processed in a batch at <code>scheduleHour</code> (default 2 AM). Minimal interruption; ideal for large vaults where processing a note immediately after every edit isn't necessary.</div>
+        </div>
+        <div class="trigger-card">
+          <div class="trigger-label">manual</div>
+          <div class="trigger-title">Only on command</div>
+          <div class="trigger-desc">SANE never processes automatically. Use <em>Process current note</em> or <em>Initialize all notes</em> whenever you're ready. Full control, zero surprise API calls.</div>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:24px;">
+        <strong>Budget tip:</strong> The <code>delayed</code> or <code>manual</code> trigger is strongly recommended when you're still exploring SANE's output, as it prevents API calls accumulating while you write.
+      </div>
+
+      <!-- STATUS BAR -->
+      <h2 id="statusbar">Status bar</h2>
+      <p>SANE shows its state in the bottom-right status bar of Obsidian's window. Here are the messages you may see:</p>
+      <div class="status-examples">
+        <div class="status-row">
+          <div class="status-display">SANE · idle</div>
+          <div class="status-meaning">Plugin is running, no notes queued.</div>
+        </div>
+        <div class="status-row">
+          <div class="status-display">SANE · processing 3 / 47</div>
+          <div class="status-meaning">Bulk initialization in progress — 3 of 47 notes complete.</div>
+        </div>
+        <div class="status-row">
+          <div class="status-display">SANE · processing my-note.md</div>
+          <div class="status-meaning">Currently enriching a single note triggered by an edit.</div>
+        </div>
+        <div class="status-row">
+          <div class="status-display">SANE · budget reached</div>
+          <div class="status-meaning">Today's daily budget has been hit. Processing is paused until midnight.</div>
+        </div>
+        <div class="status-row">
+          <div class="status-display">SANE · error</div>
+          <div class="status-meaning">A provider error occurred. Check the developer console for details. Try <em>Test AI response</em> with <code>debugMode</code> on.</div>
+        </div>
+      </div>
+
+      <!-- RIBBON -->
+      <h2 id="ribbon">Ribbon button</h2>
+      <p>SANE adds a brain icon (🧠) to Obsidian's left ribbon. Clicking it is a shortcut for <strong>SANE: Process current note</strong> — handy when you're in <code>manual</code> trigger mode and want to process the note you're looking at without opening the command palette.</p>
+    </article>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <div class="foot-meta">SANE — Smart AI Note Evolution · MIT licensed</div>
+    <div class="foot-links">
+      <a href="https://github.com/Ghost04718/SANE">GitHub</a>
+      <a href="https://github.com/Ghost04718/SANE/issues">Bugs</a>
+      <a href="https://github.com/Ghost04718/SANE/discussions">Discuss</a>
+      <a href="https://buymeacoffee.com/adamchen">Coffee</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
