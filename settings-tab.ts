@@ -520,18 +520,15 @@ export class SANESettingTab extends PluginSettingTab {
 					this.plugin.showOnboardingWizard();
 				}));
 
+		const debugDiv = containerEl.createDiv();
 		new Setting(containerEl)
 			.setName('Debug info')
-			.setHeading();
-
-		const debugDiv = containerEl.createDiv();
-		this.updateDebugInfo(debugDiv);
-
-		new Setting(containerEl)
-			.setName('Refresh debug info')
+			.setHeading()
 			.addButton(button => button
 				.setButtonText('Refresh')
 				.onClick(() => this.updateDebugInfo(debugDiv)));
+
+		this.updateDebugInfo(debugDiv);
 	}
 
 	private createDangerZoneSettings(containerEl: HTMLElement): void {
@@ -567,24 +564,31 @@ export class SANESettingTab extends PluginSettingTab {
 
 	private updateDebugInfo(container: HTMLElement): void {
 		container.empty();
-		
+
 		const aiConfigured = this.plugin.aiProvider?.isConfigured() || false;
 		const embeddingsCount = this.plugin['noteEmbeddings']?.size || 0;
 		const queueSize = this.plugin['queue']?.size || 0;
-		
+
 		const infoItems = [
-			{ label: 'AI provider:', value: this.plugin.settings.aiProvider },
-			{ label: 'AI configured:', value: aiConfigured ? 'Yes' : 'No' },
-			{ label: 'Notes with embeddings:', value: embeddingsCount.toString() },
-			{ label: 'Processing queue:', value: queueSize.toString() },
-			{ label: 'Target folder:', value: this.plugin.settings.targetFolder || 'All folders' },
-			{ label: 'Processing trigger:', value: this.plugin.settings.processingTrigger }
+			{ label: 'AI provider', value: this.plugin.settings.aiProvider },
+			{ label: 'AI configured', value: aiConfigured ? 'Yes' : 'No' },
+			{ label: 'Embedding provider', value: this.plugin.settings.embeddingProvider },
+			{ label: 'Notes with embeddings', value: embeddingsCount.toString() },
+			{ label: 'Processing queue', value: queueSize.toString() },
+			{ label: 'Target folder', value: this.plugin.settings.targetFolder || 'All folders' },
+			{ label: 'Processing trigger', value: this.plugin.settings.processingTrigger },
 		];
-		
-		infoItems.forEach(item => {
-			const p = container.createEl('p');
-			p.createEl('strong', { text: item.label });
-			p.appendText(' ' + item.value);
+
+		const dl = container.createEl('dl', { cls: 'sane-debug-info' });
+		infoItems.forEach(({ label, value }) => {
+			dl.createEl('dt', { text: label });
+			dl.createEl('dd', { text: value });
+		});
+
+		container.createEl('style', {
+			text: `.sane-debug-info { display: grid; grid-template-columns: max-content 1fr; gap: 2px 12px; margin: 8px 0; font-size: var(--font-ui-small); }
+.sane-debug-info dt { color: var(--text-muted); }
+.sane-debug-info dd { margin: 0; font-family: var(--font-monospace); }`
 		});
 	}
 }
