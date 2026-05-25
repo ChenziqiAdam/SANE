@@ -43,9 +43,9 @@ Full usage documentation, configuration reference, and local LLM setup guide are
 
 ## Support
 
-- [GitHub repository](https://github.com/Ghost04718/SANE)
-- [Report a bug](https://github.com/Ghost04718/SANE/issues)
-- [Suggest a feature](https://github.com/Ghost04718/SANE/discussions)
+- [GitHub repository](https://github.com/ChenziqiAdam/SANE)
+- [Report a bug](https://github.com/ChenziqiAdam/SANE/issues)
+- [Suggest a feature](https://github.com/ChenziqiAdam/SANE/discussions)
 - [Buy me a coffee](https://buymeacoffee.com/adamchen)
 
 ## License
