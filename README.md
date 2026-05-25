@@ -1,5 +1,7 @@
 # SANE — Smart AI Note Evolution
 
+> [Official Website](https://chenziqiadam.github.io/SANE/) | [Full Documentation](https://chenziqiadam.github.io/SANE/docs/index.html)
+
 An Obsidian plugin that automatically enhances your notes using AI. When you add or edit a note, SANE finds the most relevant notes in your vault and enriches them with tags, keywords, links, and summaries via YAML frontmatter.
 
 ## Features

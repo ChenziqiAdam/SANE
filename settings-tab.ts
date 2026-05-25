@@ -520,7 +520,6 @@ export class SANESettingTab extends PluginSettingTab {
 					this.plugin.showOnboardingWizard();
 				}));
 
-		const debugDiv = containerEl.createDiv();
 		new Setting(containerEl)
 			.setName('Debug info')
 			.setHeading()
@@ -528,6 +527,7 @@ export class SANESettingTab extends PluginSettingTab {
 				.setButtonText('Refresh')
 				.onClick(() => this.updateDebugInfo(debugDiv)));
 
+		const debugDiv = containerEl.createDiv();
 		this.updateDebugInfo(debugDiv);
 	}
 
